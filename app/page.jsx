@@ -1,244 +1,590 @@
-// Add this line at the very top of the file
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
-import SubHome from "../components/SubHome";
-// Helper component for icons to keep the main component cleaner
-const Icon = ({ path, className = "w-5 h-5" }) => (
+import React, { useState, useEffect } from "react";
+import { fetchCollection } from "@/components/server/fetchnews";
+import ProfessionalLoader from "@/components/Loading";
+// --- SVG ICONS --- //
+const HomeIcon = () => (
   <svg
-    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d={path}
-    />
+    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+  </svg>
+);
+const SearchIcon = ({ className = "h-5 w-5" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+const BookmarkIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
+  >
+    <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+  </svg>
+);
+const MenuIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
+  >
+    <line x1="4" x2="20" y1="12" y2="12"></line>
+    <line x1="4" x2="20" y1="6" y2="6"></line>
+    <line x1="4" x2="20" y1="18" y2="18"></line>
+  </svg>
+);
+const GlobeIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-4 w-4"
+  >
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="2" y1="12" x2="22" y2="12"></line>
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
   </svg>
 );
 
-export default function Home() {
-  // 1. State to manage the selected category
-  const [selectedCategory, setSelectedCategory] = useState("सभी");
+// --- SAMPLE DATA --- //
+const SAMPLE_ARTICLES = [
+  {
+    id: 1,
+    tag: "राजनीति",
+    title: "संसद का मानसून सत्र: नए विधेयकों पर होगी गरमागरम बहस",
+    excerpt:
+      "सरकार इस सत्र में कई महत्वपूर्ण विधेयक पेश करने की तैयारी में है, विपक्ष ने भी अपनी रणनीति बना ली है।",
+    author: "रवि प्रकाश",
+    time: "2 घंटे पहले",
+    img: "https://images.unsplash.com/photo-1602339257297-2519247c9e0d?auto=format&fit=crop&w=1600&q=80",
+    credit: "Photo: Unsplash / A. L.",
+    avatar: "https://i.pravatar.cc/48?img=1",
+  },
+  {
+    id: 2,
+    tag: "मनोरंजन",
+    title: "सिनेमा का भविष्य: ओटीटी प्लेटफॉर्म्स और बड़े पर्दे की जंग",
+    excerpt:
+      "क्या डिजिटल रिलीज फिल्मों के बॉक्स ऑफिस कलेक्शन को प्रभावित कर रही हैं? जानिए विशेषज्ञों की राय।",
+    author: "प्रिया मेहरा",
+    time: "5 घंटे पहले",
+    img: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=1600&q=80",
+    credit: "Photo: Unsplash / A. B.",
+    avatar: "https://i.pravatar.cc/48?img=2",
+  },
+  {
+    id: 3,
+    tag: "खेल",
+    title: "विश्व कप फाइनल: भारत की शानदार जीत, देशभर में जश्न का माहौल",
+    excerpt:
+      "आखिरी ओवर के रोमांच में टीम इंडिया ने दिखाया दम, कप्तान के शतक ने दिलाई ऐतिहासिक जीत।",
+    author: "विक्रम सिंह",
+    time: "8 घंटे पहले",
+    img: "https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=1600&q=80",
+    credit: "Photo: Unsplash / S. M.",
+    avatar: "https://i.pravatar.cc/48?img=3",
+  },
+  {
+    id: 4,
+    tag: "टेक",
+    title:
+      "आर्टिफिशियल इंटेलिजेंस: क्या यह नौकरियां खत्म कर देगा या नए अवसर पैदा करेगा?",
+    excerpt:
+      "एआई के बढ़ते प्रभाव से उद्योग जगत में बड़े बदलाव की उम्मीद है, जानिए आपके करियर पर क्या होगा असर।",
+    author: "अंजलि गुप्ता",
+    time: "1 दिन पहले",
+    img: "https://images.unsplash.com/photo-1550745165-9bc0b252726a?auto=format&fit=crop&w=1600&q=80",
+    credit: "Photo: Unsplash / L. R.",
+    avatar: "https://i.pravatar.cc/48?img=4",
+  },
+];
 
-  const newsArticles = [
-    {
-      id: 1,
-      title: "टी20 विश्व कप 2024: भारत ने 17 साल बाद खिताब जीता",
-      description:
-        "बारबाडोस में खेले गए फाइनल मुकाबले में भारत ने दक्षिण अफ्रीका को 7 रनों से हराकर दूसरी बार टी20 विश्व कप का खिताब अपने नाम किया।",
-      category: "खेल",
-      date: "29 जून, 2024",
-      image:
-        "https://images.pexels.com/photos/163452/cricket-bat-ball-grass-163452.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      link: "#",
-    },
-    {
-      id: 2,
-      title:
-        "नई सरकार का शपथ ग्रहण: नरेंद्र मोदी ने तीसरी बार प्रधानमंत्री पद की शपथ ली",
-      description:
-        "नरेंद्र मोदी ने अपने 71 मंत्रियों के साथ लगातार तीसरी बार प्रधानमंत्री पद की शपथ ली। इस समारोह में कई देशों के राष्ट्राध्यक्ष शामिल हुए।",
-      category: "राजनीति",
-      date: "9 जून, 2024",
-      image:
-        "https://images.pexels.com/photos/1559286/pexels-photo-1559286.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      link: "#",
-    },
-    {
-      id: 3,
-      title: "कल्कि 2898 एडी: बॉक्स ऑफिस पर रिकॉर्ड तोड़ कमाई",
-      description:
-        "प्रभास और दीपिका पादुकोण अभिनीत साइंस-फिक्शन फिल्म 'कल्कि 2898 एडी' ने दुनिया भर में बॉक्स ऑफिस पर शानदार शुरुआत की है।",
-      category: "मनोरंजन",
-      date: "5 जुलाई, 2024",
-      image:
-        "https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      link: "#",
-    },
-    {
-      id: 4,
-      title: "भारतीय शेयर बाजार में बजट के बाद उछाल, सेंसेक्स 77,000 के पार",
-      description:
-        "केंद्रीय बजट 2024 की घोषणाओं के बाद निवेशकों में उत्साह देखा गया, जिससे सेंसेक्स और निफ्टी ने नए रिकॉर्ड स्तर बनाए।",
-      category: "व्यापार",
-      date: "23 जुलाई, 2024",
-      image:
-        "https://images.pexels.com/photos/7788657/pexels-photo-7788657.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      link: "#",
-    },
-    {
-      id: 5,
-      title:
-        "ISRO का 'पुष्पक' विमान सफल लैंडिंग: भारत की अंतरिक्ष में एक और छलांग",
-      description:
-        "इसरो ने अपने रीयूजेबल लॉन्च व्हीकल (RLV) 'पुष्पक' का तीसरा सफल लैंडिंग प्रयोग पूरा किया। यह भारत को अंतरिक्ष प्रक्षेपण लागत कम करने में मदद करेगा।",
-      category: "तकनीक",
-      date: "23 जून, 2024",
-      image:
-        "https://images.pexels.com/photos/586056/pexels-photo-586056.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      link: "#",
-    },
-    {
-      id: 6,
-      title: "भारत में मानसून की प्रगति, कई राज्यों में भारी बारिश का अलर्ट",
-      description:
-        "मानसून अब पूरे देश में सक्रिय हो गया है। मौसम विभाग ने अगले कुछ दिनों में महाराष्ट्र, गुजरात और मध्य प्रदेश समेत कई राज्यों में भारी बारिश की चेतावनी जारी की है।",
-      category: "मौसम",
-      date: "15 जुलाई, 2024",
-      image:
-        "https://images.pexels.com/photos/459469/pexels-photo-459469.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      link: "#",
-    },
-  ];
-
-  const categories = [
-    "सभी",
-    "खेल",
-    "राजनीति",
-    "मनोरंजन",
-    "व्यापार",
-    "तकनीक",
-    "मौसम",
-  ];
-
-  // 2. Filter articles based on the selected category
-  const filteredArticles = newsArticles.filter(
-    (article) =>
-      selectedCategory === "सभी" || article.category === selectedCategory
-  );
+const Header = ({ setShowSearch }) => {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("hi-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-      <SubHome />
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            ताजा खबरें
-          </h1>
-          <div className="flex items-center space-x-2">
-            <button className="hidden sm:block px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300">
-              सभी देखें
-            </button>
-            <button className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300">
-              <Icon path="M4 6h16M4 12h16m-7 6h7" className="w-5 h-5" />
-            </button>
+    <>
+      <div className="bg-[#f8fafb] text-sm text-gray-600 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-10">
+          <div className="flex items-center gap-4 text-xs">
+            <span>इंडिया एडिशन</span>
+            <span className="hidden sm:block text-gray-400">|</span>
+            <span className="hidden sm:block">{formattedDate}</span>
           </div>
-        </header>
-
-        {/* Featured News Banner */}
-        <div className="mb-12 rounded-xl p-6 md:p-8 text-white relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-700">
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-20"
-            style={{
-              backgroundImage:
-                "url('https://images.pexels.com/photos/586056/pexels-photo-586056.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')",
-            }}
-          ></div>
-          <div className="relative z-10 max-w-2xl">
-            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
-              मुख्य समाचार
-            </span>
-            <h2 className="text-2xl md:text-4xl font-bold mt-4 leading-tight">
-              ISRO का नया कीर्तिमान: XPoSat मिशन सफलतापूर्वक लॉन्च
-            </h2>
-            <p className="mt-3 opacity-80">
-              भारतीय अंतरिक्ष अनुसंधान संगठन (ISRO) ने PSLV-C58 रॉकेट से देश के
-              पहले एक्स-रे पोलारिमीटर सैटेलाइट (XPoSat) को सफलतापूर्वक लॉन्च
-              किया।
-            </p>
-            <button className="mt-6 px-6 py-2.5 bg-white text-blue-600 rounded-lg font-semibold hover:bg-slate-100 transition-colors duration-300 flex items-center group">
-              पूरा पढ़ें
-              <Icon
-                path="M17 8l4 4m0 0l-4 4m4-4H3"
-                className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"
-              />
+          <div className="flex items-center gap-4">
+            <button className="text-xs font-medium hover:text-[#0f4c4c]">
+              लॉग इन
+            </button>
+            <button className="text-xs px-4 py-1.5 rounded-full bg-[#0f4c4c] hover:bg-opacity-90 text-white font-semibold transition-colors">
+              सब्सक्राइब करें
             </button>
           </div>
         </div>
+      </div>
 
-        {/* News Categories */}
-        <div className="flex overflow-x-auto pb-4 mb-8 -mx-4 px-4">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)} // 3. Set category on click
-              className={`px-4 py-2 mr-3 whitespace-nowrap rounded-full text-sm font-semibold transition-colors duration-300 ${
-                selectedCategory === cat
-                  ? "bg-blue-600 text-white" // Active style
-                  : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700" // Inactive style
-              }`}
+      <header className="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/80 bg-white/95 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+          <div className="flex items-center gap-6">
+            <a
+              href="#"
+              className="flex items-center gap-3"
+              aria-label="देश खबर होमपेज"
             >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* News Grid - 4. Map over the filtered list */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredArticles.map((article) => (
-            <div
-              key={article.id}
-              className="bg-white dark:bg-slate-800/50 rounded-xl shadow-md hover:shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700 transition-all duration-300 group"
-            >
-              <div className="relative w-full h-48 overflow-hidden">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  layout="fill"
-                  objectFit="cover"
-                  className="transition-transform duration-300 group-hover:scale-105"
-                />
+              <div className="w-12 h-12 bg-gradient-to-br from-[#0f4c4c] to-[#0a7f7f] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">दे</span>
               </div>
-
-              <div className="p-5">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold">
-                    {article.category}
-                  </span>
-                  <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">
-                    {article.date}
-                  </span>
+              <div>
+                <div className="font-extrabold text-xl leading-5 tracking-tight font-['Noto_Sans_Devanagari'] text-gray-900">
+                  देश खबर
                 </div>
-
-                <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white line-clamp-2">
-                  {article.title}
-                </h2>
-                <p className="text-slate-600 dark:text-slate-400 mb-4 line-clamp-3 text-sm leading-relaxed">
-                  {article.description}
-                </p>
-
-                <div className="flex justify-between items-center mt-4">
+                <div className="text-xs text-gray-500 tracking-wide">
+                  तेज़, विश्वसनीय और स्वतंत्र
+                </div>
+              </div>
+            </a>
+            <nav
+              className="hidden lg:flex items-center gap-1"
+              aria-label="मुख्य नेविगेशन"
+            >
+              {["समाचार", "राजनीति", "मनोरंजन", "खेल", "नौकरी", "टेक"].map(
+                (c) => (
                   <a
-                    href={article.link}
-                    className="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center text-sm group/link"
+                    key={c}
+                    href="#"
+                    className="text-sm font-medium px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-[#0f4c4c] transition-colors"
                   >
-                    पूरा पढ़ें
-                    <Icon
-                      path="M14 5l7 7m0 0l-7 7m7-7H3"
-                      className="w-4 h-4 ml-1 transition-transform duration-300 group-hover/link:translate-x-1"
-                    />
+                    {c}
                   </a>
+                )
+              )}
+            </nav>
+          </div>
 
-                  <div className="flex space-x-1">
-                    <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                      <Icon path="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowSearch(true)}
+              className="hidden md:flex items-center gap-2 border rounded-full px-4 py-2.5 bg-gray-50 border-gray-200 hover:border-[#0f4c4c]/50 transition-colors"
+            >
+              <SearchIcon className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-500">खोजें...</span>
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2 text-sm bg-white border border-gray-200 rounded-full px-4 py-2">
+              <GlobeIcon />
+              <select className="bg-transparent focus:outline-none appearance-none text-gray-700">
+                <option>हिंदी</option>
+                <option>English</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </header>
+    </>
+  );
+};
+
+const Ticker = ({ items = [] }) => (
+  <div className="flex-1 overflow-hidden relative h-8">
+    <div className="absolute inset-0 flex items-center animate-marquee whitespace-nowrap text-sm text-gray-800 font-medium">
+      {items.concat(items).map((it, idx) => (
+        <span key={idx} className="inline-flex items-center mx-6">
+          <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+          {it}
+        </span>
+      ))}
+    </div>
+    <style>{`
+          @keyframes marquee {
+              0% { transform: translateX(0%); }
+              100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+              animation: marquee 25s linear infinite;
+          }
+      `}</style>
+  </div>
+);
+
+const Hero = ({ lead, trending = [] }) => (
+  <article className="rounded-xl overflow-hidden shadow-lg bg-white border border-gray-100">
+    <div className="lg:flex">
+      <div className="lg:w-2/3 relative group">
+        <img
+          src={lead.img}
+          alt={lead.title}
+          className="object-cover w-full h-72 lg:h-[450px]"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
+            {lead.tag}
+          </span>
+          <h1 className="mt-4 font-bold text-2xl md:text-4xl leading-tight text-white font-['Noto_Sans_Devanagari']">
+            {lead.title}
+          </h1>
+          <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
+            {lead.excerpt}
+          </p>
+          <div className="mt-4 flex items-center gap-3 text-sm text-white">
+            <img
+              src={lead.avatar}
+              alt={lead.author}
+              className="w-10 h-10 rounded-full border-2 border-white/50"
+            />
+            <div className="font-medium">
+              {lead.author} • {lead.time}
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside className="lg:w-1/3 p-6 bg-gray-50 border-l border-gray-100">
+        <h2 className="font-bold text-gray-800 text-lg border-b-2 border-[#0f4c4c] pb-3 font-['Noto_Sans_Devanagari']">
+          ट्रेंडिंग खबरें
+        </h2>
+        <ol className="mt-4 space-y-4">
+          {trending.map((t) => (
+            <li
+              key={t.id}
+              className="group flex gap-4 items-start pb-4 border-b border-gray-100 last:border-b-0"
+            >
+              <img
+                src={t.img}
+                alt={t.title}
+                className="w-24 h-16 object-cover rounded-md flex-shrink-0"
+                loading="lazy"
+              />
+              <div className="flex-1">
+                <a
+                  href="#"
+                  className="font-semibold text-sm leading-snug text-gray-800 group-hover:text-[#0f4c4c] transition-colors line-clamp-2"
+                >
+                  {t.title}
+                </a>
+                <div className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                  <span>{t.author}</span>
+                  <span>•</span>
+                  <span>{t.time}</span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </aside>
+    </div>
+  </article>
+);
+
+const ArticleCard = ({ article }) => (
+  <article className="group rounded-lg overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+    <div className="relative h-48 overflow-hidden">
+      <img
+        src={article.img}
+        alt={article.title}
+        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+      />
+      <span className="absolute top-3 left-3 bg-[#0f4c4c] text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wide">
+        {article.tag}
+      </span>
+    </div>
+    <div className="p-5">
+      <h3 className="font-bold text-lg leading-snug line-clamp-2 text-gray-900 group-hover:text-[#0f4c4c] font-['Noto_Sans_Devanagari'] transition-colors">
+        {article.title}
+      </h3>
+      <p className="mt-3 text-sm text-gray-600 line-clamp-2 leading-relaxed">
+        {article.excerpt}
+      </p>
+      <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <img
+            src={article.avatar}
+            alt={article.author}
+            className="w-8 h-8 rounded-full"
+          />
+          <div>
+            <div className="font-medium">{article.author}</div>
+            <div className="text-xs">{article.time}</div>
+          </div>
+        </div>
+        <a
+          href="#"
+          className="text-sm font-semibold text-[#0f4c4c] hover:text-[#0a7f7f] transition-colors"
+        >
+          और पढ़ें →
+        </a>
+      </div>
+    </div>
+  </article>
+);
+
+const MobileNav = () => (
+  <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl p-2 flex items-center justify-around text-gray-600 border border-gray-100 md:hidden z-50">
+    <button className="flex flex-col items-center justify-center text-xs w-16 h-12 rounded-xl text-white bg-[#0f4c4c]">
+      <HomeIcon />
+      <span>होम</span>
+    </button>
+    <button className="flex flex-col items-center justify-center text-xs w-16 h-12 rounded-xl hover:bg-gray-50 transition-colors">
+      <SearchIcon className="h-6 w-6" />
+      <span>खोज</span>
+    </button>
+    <button className="flex flex-col items-center justify-center text-xs w-16 h-12 rounded-xl hover:bg-gray-50 transition-colors">
+      <BookmarkIcon />
+      <span>सेव</span>
+    </button>
+    <button className="flex flex-col items-center justify-center text-xs w-16 h-12 rounded-xl hover:bg-gray-50 transition-colors">
+      <MenuIcon />
+      <span>मेनू</span>
+    </button>
+  </nav>
+);
+
+const Footer = () => (
+  <footer className="bg-gray-50 border-t border-gray-200 mt-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+        <div className="col-span-2 lg:col-span-2">
+          <a href="#" className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#0f4c4c] to-[#0a7f7f] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">दे</span>
+            </div>
+            <div>
+              <div className="font-extrabold text-xl leading-5 tracking-tight font-['Noto_Sans_Devanagari'] text-gray-900">
+                देश खबर
+              </div>
+              <div className="text-xs text-gray-500 tracking-wide">
+                तेज़, विश्वसनीय और स्वतंत्र
+              </div>
+            </div>
+          </a>
+          <p className="text-sm text-gray-600 max-w-xs leading-relaxed">
+            भारत और दुनिया भर से नवीनतम समाचारों, विश्लेषणों और विचारों के लिए
+            आपका विश्वसनीय स्रोत।
+          </p>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-900 text-sm mb-4">
+            श्रेणियाँ
+          </h3>
+          <ul className="space-y-2 text-sm text-gray-600">
+            {["राजनीति", "मनोरंजन", "खेल", "टेक", "व्यापार"].map((c) => (
+              <li key={c}>
+                <a href="#" className="hover:text-[#0f4c4c] transition-colors">
+                  {c}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-900 text-sm mb-4">कंपनी</h3>
+          <ul className="space-y-2 text-sm text-gray-600">
+            {["हमारे बारे में", "संपर्क करें", "करियर", "विज्ञापन"].map((c) => (
+              <li key={c}>
+                <a href="#" className="hover:text-[#0f4c4c] transition-colors">
+                  {c}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-900 text-sm mb-4">कानूनी</h3>
+          <ul className="space-y-2 text-sm text-gray-600">
+            {["गोपनीयता नीति", "सेवा की शर्तें"].map((c) => (
+              <li key={c}>
+                <a href="#" className="hover:text-[#0f4c4c] transition-colors">
+                  {c}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
+        <p>
+          &copy; {new Date().getFullYear()} देश खबर मीडिया. सर्वाधिकार सुरक्षित।
+        </p>
+      </div>
+    </div>
+  </footer>
+);
+
+export default function App() {
+  const [query, setQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [tickerItems] = useState([
+    "बड़ी खबर: वैश्विक अर्थव्यवस्था में नई चुनौती—विशेष रिपोर्ट",
+    "मनोरंजन: फिल्म X ने बॉक्स ऑफिस पर तोड़ा रिकॉर्ड",
+    "खेल: कप्तान ने किया चौंकाने वाला फैसला",
+  ]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const items = await fetchCollection("news"); // <-- await the promise
+        if (!mounted) return;
+        setData(items);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err);
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  if (loading) return <ProfessionalLoader />;
+  if (error) return <div>Error: {error.message || String(error)}</div>;
+
+  return (
+    <div className="min-h-screen bg-white text-gray-900 font-['Roboto','Noto_Sans_Devanagari']">
+      <Header setShowSearch={setShowSearch} />
+
+      <div className="bg-amber-50 border-y border-amber-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4">
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider">
+            ब्रेकिंग
+          </span>
+          <Ticker items={tickerItems} />
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Hero
+          lead={SAMPLE_ARTICLES[0]}
+          trending={SAMPLE_ARTICLES.slice(1, 3)}
+        />
+
+        <section className="my-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
+            ताज़ा खबरें
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {SAMPLE_ARTICLES.map((a) => (
+              <ArticleCard key={a.id} article={a} />
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <MobileNav />
+      <Footer />
+
+      {/* Search modal */}
+      {showSearch && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-24">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowSearch(false)}
+          />
+          <div className="relative z-50 w-full max-w-2xl px-4">
+            <div className="bg-white rounded-xl p-6 shadow-2xl border border-gray-200">
+              <div className="flex items-center gap-4">
+                <SearchIcon className="h-5 w-5 text-gray-500" />
+                <input
+                  autoFocus
+                  aria-label="search-input"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="खबर, विषय या व्यक्ति खोजें..."
+                  className="flex-1 bg-transparent focus:outline-none text-lg placeholder-gray-400"
+                />
+                <button
+                  onClick={() => setShowSearch(false)}
+                  className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  रद्द करें
+                </button>
+              </div>
+              <div className="mt-6 border-t border-gray-100 pt-4">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  लोकप्रिय विषय
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "दिल्ली चुनाव",
+                    "बॉलीवुड",
+                    "क्रिकेट विश्व कप",
+                    "नई नौकरी",
+                    "बजट 2024",
+                  ].map((tag) => (
+                    <button
+                      key={tag}
+                      className="px-4 py-2 rounded-full bg-gray-100 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                    >
+                      {tag}
                     </button>
-                    <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                      <Icon path="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                    </button>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

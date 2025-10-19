@@ -21,9 +21,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="hi">
       <body>
-        <Navbar theme={theme} setTheme={setTheme} />
         <main className="container mx-auto px-4 py-6">{children}</main>
-        <Footer />
       </body>
     </html>
   );
