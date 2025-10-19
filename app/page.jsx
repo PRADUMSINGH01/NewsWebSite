@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { fetchCollection } from "@/components/server/fetchnews";
 import ProfessionalLoader from "@/components/Loading";
+import Link from "next/link";
+import Footer from "@/components/Footer";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -238,10 +240,10 @@ const Ticker = ({ items = [] }) => (
   <div className="flex-1 overflow-hidden relative h-8">
     <div className="absolute inset-0 flex items-center animate-marquee whitespace-nowrap text-sm text-gray-800 font-medium">
       {items.concat(items).map((it, idx) => (
-        <span key={idx} className="inline-flex items-center mx-6">
+        <Link href={it} key={idx} className="inline-flex items-center mx-6">
           <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
           {it}
-        </span>
+        </Link>
       ))}
     </div>
     <style>{`
@@ -390,77 +392,6 @@ const MobileNav = () => (
   </nav>
 );
 
-const Footer = () => (
-  <footer className="bg-gray-50 border-t border-gray-200 mt-16">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-        <div className="col-span-2 lg:col-span-2">
-          <a href="#" className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#0f4c4c] to-[#0a7f7f] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">दे</span>
-            </div>
-            <div>
-              <div className="font-extrabold text-xl leading-5 tracking-tight font-['Noto_Sans_Devanagari'] text-gray-900">
-                देश खबर
-              </div>
-              <div className="text-xs text-gray-500 tracking-wide">
-                तेज़, विश्वसनीय और स्वतंत्र
-              </div>
-            </div>
-          </a>
-          <p className="text-sm text-gray-600 max-w-xs leading-relaxed">
-            भारत और दुनिया भर से नवीनतम समाचारों, विश्लेषणों और विचारों के लिए
-            आपका विश्वसनीय स्रोत।
-          </p>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900 text-sm mb-4">
-            श्रेणियाँ
-          </h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            {["राजनीति", "मनोरंजन", "खेल", "टेक", "व्यापार"].map((c) => (
-              <li key={c}>
-                <a href="#" className="hover:text-[#0f4c4c] transition-colors">
-                  {c}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900 text-sm mb-4">कंपनी</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            {["हमारे बारे में", "संपर्क करें", "करियर", "विज्ञापन"].map((c) => (
-              <li key={c}>
-                <a href="#" className="hover:text-[#0f4c4c] transition-colors">
-                  {c}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900 text-sm mb-4">कानूनी</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            {["गोपनीयता नीति", "सेवा की शर्तें"].map((c) => (
-              <li key={c}>
-                <a href="#" className="hover:text-[#0f4c4c] transition-colors">
-                  {c}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
-        <p>
-          &copy; {new Date().getFullYear()} देश खबर मीडिया. सर्वाधिकार सुरक्षित।
-        </p>
-      </div>
-    </div>
-  </footer>
-);
-
 export default function App() {
   const [query, setQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -523,6 +454,31 @@ export default function App() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             ताज़ा खबरें
           </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {SAMPLE_ARTICLES.map((a) => (
+              <ArticleCard key={a.id} article={a} />
+            ))}
+          </div>
+        </section>
+
+        <section className="my-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
+            खेल ताज़ा खबरें
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {SAMPLE_ARTICLES.map((a) => (
+              <ArticleCard key={a.id} article={a} />
+            ))}
+          </div>
+        </section>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
+          मनोरंजन ताज़ा खबरें
+        </h2>
+        <Hero
+          lead={SAMPLE_ARTICLES[0]}
+          trending={SAMPLE_ARTICLES.slice(1, 3)}
+        />
+        <section className="my-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {SAMPLE_ARTICLES.map((a) => (
               <ArticleCard key={a.id} article={a} />
