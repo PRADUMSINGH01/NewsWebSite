@@ -7,6 +7,10 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import Logo from "@/public/logo.png";
 import Image from "next/image";
+import AdBanner from "@/components/AdBanner";
+import SimpleAd from "@/components/SimpleAd";
+import EffectiveGateAd from "@/components/EffectiveGateAd";
+import HighPerfAd from "@/components/HighPerfAd";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -274,9 +278,9 @@ const Hero = ({ lead, trending = [] }) => (
           <h1 className="mt-4 font-bold text-2xl md:text-4xl leading-tight text-white font-['Noto_Sans_Devanagari']">
             {lead.title}
           </h1>
-          <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
+          {/* <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
             {lead.excerpt}
-          </p>
+          </p> */}
           <div className="mt-4 flex items-center gap-3 text-sm text-white">
             <img
               src={lead.avatar}
@@ -443,22 +447,20 @@ export default function App() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Hero
-          lead={SAMPLE_ARTICLES[0]}
-          trending={SAMPLE_ARTICLES.slice(1, 3)}
-        />
+        <Hero lead={data[0]} trending={data.slice(1, 3)} />
 
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             ताज़ा खबरें
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {SAMPLE_ARTICLES.map((a) => (
+            {data.map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
         </section>
-
+        <HighPerfAd />
+        <AdBanner />
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
@@ -472,16 +474,20 @@ export default function App() {
         <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
           मनोरंजन ताज़ा खबरें
         </h2>
+        <SimpleAd />
         <Hero
           lead={SAMPLE_ARTICLES[0]}
           trending={SAMPLE_ARTICLES.slice(1, 3)}
         />
         <section className="my-12">
+          <EffectiveGateAd />
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {SAMPLE_ARTICLES.map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
+          <EffectiveGateAd />
         </section>
       </main>
 

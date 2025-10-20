@@ -5,6 +5,7 @@ import {
   getDoc,
   doc,
   query,
+  where,
   orderBy,
   limit,
   startAfter,
@@ -112,4 +113,24 @@ export function listenToCollection<T = DocumentData>(
     cb(mapDocs<T>(snap));
   });
   return unsub;
+}
+
+export async function getBySlugClient(slug: string) {
+  if (!slug) throw new Error("slug required");
+
+  // Case-insensitive check is NOT supported directly; store normalized slug if needed.
+  const q = query(collection(db, "news"), where("slug", "==", slug), limit(1));
+  const snap = await getDocs(q);
+
+  if (!snap.empty) {
+    const d = snap.docs[0];
+    return { id: d.id, data: d.data() };
+  }
+
+  // Fallback to document id
+  const docRef = doc(db, "news", slug);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) return { id: docSnap.id, data: docSnap.data() };
+
+  return null;
 }

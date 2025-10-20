@@ -7,11 +7,7 @@ const nextConfig = {
         hostname: "images.pexels.com", // <-- Add this new line
       },
       // You can keep the old ones if you still use them elsewhere
-      {
-        protocol: "https",
-        hostname: "images.livemint.com",
-      },
-      // ...etc
+      { protocol: "https", hostname: "firebasestorage.googleapis.com" }, // ...etc
     ],
   },
 };
