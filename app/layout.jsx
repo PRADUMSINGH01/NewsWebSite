@@ -1,10 +1,8 @@
 // app/layout.jsx
 "use client";
 import { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
 import "./globals.css";
-import Footer from "../components/Footer";
-
+import { Analytics } from "@vercel/analytics/next";
 export default function RootLayout({ children }) {
   const [theme, setTheme] = useState("light");
 
@@ -22,6 +20,7 @@ export default function RootLayout({ children }) {
     <html lang="hi">
       <body>
         <main className="container mx-auto px-4 py-6">{children}</main>
+        <Analytics />
       </body>
     </html>
   );
