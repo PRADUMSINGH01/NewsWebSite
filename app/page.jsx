@@ -5,6 +5,8 @@ import { fetchCollection } from "@/components/server/fetchnews";
 import ProfessionalLoader from "@/components/Loading";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import Logo from "@/public/logo.png";
+import Image from "next/image";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -183,16 +185,12 @@ const Header = ({ setShowSearch }) => {
               className="flex items-center gap-3"
               aria-label="देश खबर होमपेज"
             >
-              <div className="w-12 h-12 bg-gradient-to-br from-[#0f4c4c] to-[#0a7f7f] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">दे</span>
+              <div className="w-36 -z-10 h-12 mb-5 rounded-lg flex items-center justify-center">
+                <Image src={Logo} alt="Logo" width={300} height={100}></Image>
               </div>
               <div>
-                <div className="font-extrabold text-xl leading-5 tracking-tight font-['Noto_Sans_Devanagari'] text-gray-900">
-                  देश खबर
-                </div>
-                <div className="text-xs text-gray-500 tracking-wide">
-                  तेज़, विश्वसनीय और स्वतंत्र
-                </div>
+                <div className="font-extrabold text-xl leading-5 tracking-tight font-['Noto_Sans_Devanagari'] text-gray-900"></div>
+                <div className="text-xs text-gray-500 tracking-wide"></div>
               </div>
             </a>
             <nav
@@ -372,7 +370,7 @@ const ArticleCard = ({ article }) => (
 );
 
 const MobileNav = () => (
-  <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl p-2 flex items-center justify-around text-gray-600 border border-gray-100 md:hidden z-50">
+  <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl p-2 flex items-center justify-around text-gray-600 border border-gray-100 md:hidden z-50">
     <button className="flex flex-col items-center justify-center text-xs w-16 h-12 rounded-xl text-white bg-[#0f4c4c]">
       <HomeIcon />
       <span>होम</span>

@@ -1,6 +1,7 @@
 // Footer.jsx
 import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
-
+import Logo from "@/public/logo.png";
+import Image from "next/image";
 const CATEGORIES = ["राजनीति", "मनोरंजन", "खेल", "टेक", "व्यापार"];
 const COMPANY = ["हमारे बारे में", "संपर्क करें", "करियर", "विज्ञापन"];
 const LEGAL = ["गोपनीयता नीति", "सेवा की शर्तें"];
@@ -17,14 +18,18 @@ export default function Footer() {
               className="inline-flex items-center gap-3 mb-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 rounded"
               aria-label="देश खबर — Home"
             >
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-[#0f4c4c] to-[#0a7f7f] shadow-sm">
-                <span className="text-white font-semibold text-lg">दे</span>
+              <div className="w-12  h-12 rounded-lg flex items-center justify-center shadow-sm bg-white">
+                <Image
+                  src={Logo}
+                  alt="Logo"
+                  className="rounded-xl "
+                  width={400}
+                  height={400}
+                ></Image>
               </div>
 
               <div>
-                <div className="text-2xl font-extrabold leading-tight text-gray-900 dark:text-white">
-                  देश खबर
-                </div>
+                <div className="text-2xl font-extrabold leading-tight text-gray-900 dark:text-white"></div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   तेज़ · विश्वसनीय · स्वतंत्र
                 </div>
