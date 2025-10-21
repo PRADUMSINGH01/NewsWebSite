@@ -463,14 +463,14 @@ export default function App() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Hero lead={data[0]} trending={data.slice(1, 3)} />
+        <Hero lead={data[0]} trending={data.slice(1, 5)} />
 
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             ताज़ा खबरें
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.slice(4, 7).map((a) => (
+            {data.slice(6, 9).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
