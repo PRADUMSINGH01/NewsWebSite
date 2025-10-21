@@ -34,7 +34,8 @@ export async function fetchCollection<T = DocumentData>(
   collectionPath: string
 ): Promise<Array<WithId<T>>> {
   const colRef = collection(db, collectionPath) as CollectionReference<T>;
-  const snap = await getDocs(colRef);
+  const q = query(colRef, orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
   return mapDocs<T>(snap);
 }
 

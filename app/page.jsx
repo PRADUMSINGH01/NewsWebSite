@@ -9,8 +9,8 @@ import Logo from "@/public/logo.png";
 import Image from "next/image";
 import AdBanner from "@/components/AdBanner";
 import SimpleAd from "@/components/SimpleAd";
-import EffectiveGateAd from "@/components/EffectiveGateAd";
-import HighPerfAd from "@/components/HighPerfAd";
+// import EffectiveGateAd from "@/components/EffectiveGateAd";
+// import HighPerfAd from "@/components/HighPerfAd";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -201,17 +201,26 @@ const Header = ({ setShowSearch }) => {
               className="hidden lg:flex items-center gap-1"
               aria-label="मुख्य नेविगेशन"
             >
-              {["समाचार", "राजनीति", "मनोरंजन", "खेल", "नौकरी", "टेक"].map(
-                (c) => (
-                  <a
-                    key={c}
-                    href="#"
-                    className="text-sm font-medium px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-[#0f4c4c] transition-colors"
-                  >
-                    {c}
-                  </a>
-                )
-              )}
+              {[
+                "समाचार",
+                "राजनीति",
+                "मनोरंजन",
+                "खेल",
+                "नौकरी",
+                "टेक",
+                "कविता",
+                "कहानी",
+                "रोचक तथ्य",
+                "फ़िल्मी दुनिया",
+              ].map((c) => (
+                <a
+                  key={c}
+                  href="#"
+                  className="text-sm font-medium px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-[#0f4c4c] transition-colors"
+                >
+                  {c}
+                </a>
+              ))}
             </nav>
           </div>
 
@@ -270,28 +279,35 @@ const Hero = ({ lead, trending = [] }) => (
           className="object-cover w-full h-72 lg:h-[450px]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
-          <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
-            {lead.tag}
-          </span>
-          <h1 className="mt-4 font-bold text-2xl md:text-4xl leading-tight text-white font-['Noto_Sans_Devanagari']">
-            {lead.title}
-          </h1>
-          {/* <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
+
+        <Link href={"/Diwali"}>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
+              {lead.tag}
+            </span>
+            <h1 className="mt-4 font-bold text-2xl md:text-4xl leading-tight text-white font-['Noto_Sans_Devanagari']">
+              {lead.title}
+            </h1>
+            {/* <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
             {lead.excerpt}
           </p> */}
-          <div className="mt-4 flex items-center gap-3 text-sm text-white">
-            <img
-              src={lead.avatar}
-              alt={lead.author}
-              className="w-10 h-10 rounded-full border-2 border-white/50"
-            />
-            <div className="font-medium">
-              {lead.author} • {lead.time}
+            <div className="mt-4 flex items-center gap-3 text-sm text-white">
+              {lead.avatar ? (
+                <img
+                  src={lead.avatar}
+                  alt={lead.author}
+                  className="w-10 h-10 rounded-full border-2 border-white/50"
+                />
+              ) : (
+                ""
+              )}
+              <div className="font-medium">
+                {lead.author} • {lead.time}
+              </div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
       <aside className="lg:w-1/3 p-6 bg-gray-50 border-l border-gray-100">
         <h2 className="font-bold text-gray-800 text-lg border-b-2 border-[#0f4c4c] pb-3 font-['Noto_Sans_Devanagari']">
@@ -311,7 +327,7 @@ const Hero = ({ lead, trending = [] }) => (
               />
               <div className="flex-1">
                 <a
-                  href="#"
+                  href={t.title}
                   className="font-semibold text-sm leading-snug text-gray-800 group-hover:text-[#0f4c4c] transition-colors line-clamp-2"
                 >
                   {t.title}
@@ -454,19 +470,19 @@ export default function App() {
             ताज़ा खबरें
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.map((a) => (
+            {data.slice(4, 7).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
         </section>
-        <HighPerfAd />
-        <AdBanner />
+        {/* <HighPerfAd /> */}
+        {/* <AdBanner /> */}
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {SAMPLE_ARTICLES.map((a) => (
+            {data.slice(8, 12).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
@@ -474,20 +490,20 @@ export default function App() {
         <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
           मनोरंजन ताज़ा खबरें
         </h2>
-        <SimpleAd />
+        {/* <SimpleAd /> */}
         <Hero
           lead={SAMPLE_ARTICLES[0]}
           trending={SAMPLE_ARTICLES.slice(1, 3)}
         />
         <section className="my-12">
-          <EffectiveGateAd />
+          {/* <EffectiveGateAd /> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {SAMPLE_ARTICLES.map((a) => (
+            {data.slice(18, 22).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
-          <EffectiveGateAd />
+          {/* <EffectiveGateAd /> */}
         </section>
       </main>
 
