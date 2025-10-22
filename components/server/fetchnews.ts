@@ -116,22 +116,61 @@ export function listenToCollection<T = DocumentData>(
   return unsub;
 }
 
+// Fixed and more resilient version of getBySlugClient.
+// Tries several slug forms (raw, decoded, space-fixed, lowercased) and falls back to doc id lookup.
+// Note: Firestore equality queries are case-sensitive — for true case-insensitive search store a normalized slug field (e.g. `slug_lower`) and query that.
 export async function getBySlugClient(slug: string) {
   if (!slug) throw new Error("slug required");
 
-  // Case-insensitive check is NOT supported directly; store normalized slug if needed.
-  const q = query(collection(db, "news"), where("slug", "==", slug), limit(1));
-  const snap = await getDocs(q);
+  try {
+    // build candidate slug variants to try (deduplicated)
+    const raw = slug;
+    let decoded = raw;
+    try {
+      decoded = decodeURIComponent(raw);
+    } catch {
+      // ignore decode errors — keep decoded as raw
+      decoded = raw;
+    }
+    const plusFixed = raw.replace(/\+/g, " ");
+    const candidates = Array.from(
+      new Set([
+        raw,
+        decoded,
+        plusFixed,
+        raw.toLowerCase(),
+        decoded.toLowerCase(),
+      ])
+    ).filter(Boolean);
+    // try querying by slug field for each candidate
+    for (const candidate of candidates) {
+      const q = query(
+        collection(db, "news"),
+        where("slug", "==", candidate),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        return { id: d.id, data: d.data() };
+      }
+    }
 
-  if (!snap.empty) {
-    const d = snap.docs[0];
-    return { id: d.id, data: d.data() };
+    // fallback: try document id lookups (original and decoded)
+    const docRef = doc(db, "news", raw);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return { id: docSnap.id, data: docSnap.data() };
+
+    if (decoded !== raw) {
+      const docRef2 = doc(db, "news", decoded);
+      const docSnap2 = await getDoc(docRef2);
+      if (docSnap2.exists()) return { id: docSnap2.id, data: docSnap2.data() };
+    }
+
+    return null;
+  } catch (err) {
+    // Keep error visible for debugging — rethrow so caller can handle it.
+    console.error("getBySlugClient error:", err);
+    throw err;
   }
-
-  // Fallback to document id
-  const docRef = doc(db, "news", slug);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) return { id: docSnap.id, data: docSnap.data() };
-
-  return null;
 }

@@ -11,6 +11,7 @@ import AdBanner from "@/components/AdBanner";
 import SimpleAd from "@/components/SimpleAd";
 import EffectiveGateAd from "@/components/EffectiveGateAd";
 import HighPerfAd from "@/components/HighPerfAd";
+import AdIframe from "@/components/AdIframe";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -181,6 +182,24 @@ const Header = ({ setShowSearch }) => {
         </div>
       </div>
 
+      <AdIframe
+        keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
+        width={728}
+        height={90}
+        format="iframe"
+        // optional params object
+        params={{}}
+        className="mx-auto my-4"
+      />
+      <AdIframe
+        keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
+        width={728}
+        height={90}
+        format="iframe"
+        // optional params object
+        params={{}}
+        className="mx-auto my-4"
+      />
       <header className="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/80 bg-white/95 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
           <div className="flex items-center gap-6">
@@ -202,22 +221,20 @@ const Header = ({ setShowSearch }) => {
               aria-label="मुख्य नेविगेशन"
             >
               {[
-                {t:"समाचार",url:"news"},
-              
-                {t:"टेक",url:"tech"},  
-                {t:"खेल",url:"sports"},
-                {t:"कविता",url:"kavita"},
-                {t:"कहानी",url:"kahani"},
+                { t: "समाचार", url: "news" },
 
-                {t:"रोचक तथ्य",url:"facts"},
-                {t:"फ़िल्मी दुनिया",url:"film"},
+                { t: "टेक", url: "tech" },
+                { t: "खेल", url: "sports" },
+                { t: "कविता", url: "kavita" },
+                { t: "कहानी", url: "kahani" },
 
-                {t:"फोटो गैलरी",url:"photo-gallery"},
+                { t: "रोचक तथ्य", url: "facts" },
+                { t: "फ़िल्मी दुनिया", url: "film" },
 
-            
-              ].map((c) => (
+                { t: "फोटो गैलरी", url: "photo-gallery" },
+              ].map((c, i) => (
                 <a
-                  key={c}
+                  key={i}
                   href={c.url}
                   className="text-sm font-medium px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-[#0f4c4c] transition-colors"
                 >
@@ -283,7 +300,7 @@ const Hero = ({ lead, trending = [] }) => (
           loading="lazy"
         />
 
-        <Link href={`Read-full-news/${lead.title}`}>
+        <Link href={`Read-full-news/${lead.slug}`}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
@@ -330,7 +347,7 @@ const Hero = ({ lead, trending = [] }) => (
               />
               <div className="flex-1">
                 <a
-                  href={`Read-full-news/${t.title}`}
+                  href={`Read-full-news/${t.slug}`}
                   className="font-semibold text-sm leading-snug text-gray-800 group-hover:text-[#0f4c4c] transition-colors line-clamp-2"
                 >
                   {t.title}
@@ -382,7 +399,7 @@ const ArticleCard = ({ article }) => (
           </div>
         </div>
         <a
-          href="#"
+          href={`Read-full-news/${article.slug}`}
           className="text-sm font-semibold text-[#0f4c4c] hover:text-[#0a7f7f] transition-colors"
         >
           और पढ़ें →
@@ -494,10 +511,7 @@ export default function App() {
           मनोरंजन ताज़ा खबरें
         </h2>
         {/* <SimpleAd /> */}
-        <Hero
-          lead={SAMPLE_ARTICLES[0]}
-          trending={SAMPLE_ARTICLES.slice(1, 3)}
-        />
+        <Hero lead={data[0]} trending={data.slice(1, 3)} />
         <section className="my-12">
           <EffectiveGateAd />
 
@@ -506,8 +520,8 @@ export default function App() {
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
-          <EffectiveGateAd />
         </section>
+        <EffectiveGateAd />
       </main>
 
       <MobileNav />

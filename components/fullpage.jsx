@@ -1,17 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
-
-/**
- * Props:
- * - post?: object            // full post data (preferred, server-provided)
- * - postId?: string          // id to fetch from /api/posts/[id]
- * - fetchRelated?: boolean   // whether to fetch related posts by tag
- *
- * Endpoint assumptions (change to match your backend):
- * - GET /api/posts/{id} -> returns post object
- * - GET /api/posts?tag=TAG&limit=3 -> returns array of related posts
- */
-
+import React from "react";
+import AdIframe from "@/components/AdIframe";
+/* ------------------- Icons ------------------- */
 const UserIcon = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -59,164 +49,261 @@ const TwitterIcon = () => (
   </svg>
 );
 
-/* ------------------------- Utility: format date ------------------------- */
-function formatDate(post) {
-  const hindiMonths = [
-    "जनवरी",
-    "फ़रवरी",
-    "मार्च",
-    "अप्रैल",
-    "मई",
-    "जून",
-    "जुलाई",
-    "अगस्त",
-    "सितंबर",
-    "अक्टूबर",
-    "नवंबर",
-    "दिसंबर",
-  ];
+/* ------------------------- Helpers ------------------------- */
 
-  if (post?.time && /^\d{1,2}-\d{1,2}-\d{4}$/.test(post.time)) {
-    const [d, m, y] = post.time.split("-").map(Number);
-    const monthName = hindiMonths[m - 1] || post.time;
-    return `${d} ${monthName}, ${y}`;
+const HINDI_MONTHS = [
+  "जनवरी",
+  "फ़रवरी",
+  "मार्च",
+  "अप्रैल",
+  "मई",
+  "जून",
+  "जुलाई",
+  "अगस्त",
+  "सितंबर",
+  "अक्टूबर",
+  "नवंबर",
+  "दिसंबर",
+];
+
+/**
+ * Normalize incoming "post" shape.
+ * Accepts:
+ *  - Firestore doc shape: { id, data: { ... } }
+ *  - Plain data object: { title, content, ... }
+ */
+function normalizePost(raw) {
+  if (!raw) return {};
+  // If it's the Firestore wrapper: { id, data: { ... } }
+  if (raw.data && typeof raw.data === "object") {
+    return { id: raw.id, ...raw.data };
   }
-
-  if (post?.createdAt) {
-    try {
-      const parsed = new Date(String(post.createdAt).replace(" at ", " "));
-      if (!Number.isNaN(parsed.getTime())) {
-        const d = parsed.getDate();
-        const m = parsed.getMonth();
-        const y = parsed.getFullYear();
-        return `${d} ${hindiMonths[m]}, ${y}`;
-      }
-    } catch (e) {}
-  }
-
-  return post.time || post.createdAt || "तिथि उपलब्ध नहीं";
+  return raw;
 }
 
-/* ------------------------- Main component ------------------------- */
-export default function SimpleNewsPost({
-  post: initialPost = null,
-  postId = null,
-  fetchRelated = false,
-}) {
-  const [post, setPost] = useState(initialPost);
-  const [related, setRelated] = useState(null);
-  const [loading, setLoading] = useState(!initialPost && !!postId);
-  const [error, setError] = useState(null);
+/**
+ * Convert various createdAt/time shapes to JS Date.
+ * Handles:
+ *  - string like "21-10-2025"
+ *  - Firestore timestamp object { seconds, nanoseconds, type: 'firestore/...' }
+ *  - native Date
+ *  - ISO string
+ */
+function getDateFromPost(post) {
+  if (!post) return null;
 
-  // Fetch post by ID if initialPost not provided
-  useEffect(() => {
-    if (initialPost) return; // already have data
-    if (!postId) return; // nothing to fetch
+  // 1) explicit `time` field in format dd-mm-yyyy (as in your example)
+  if (post.time && /^\d{1,2}-\d{1,2}-\d{4}$/.test(post.time)) {
+    const [d, m, y] = post.time.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
 
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-
-    (async () => {
+  // 2) Firestore timestamp shape: { seconds, nanoseconds }
+  const createdAt = post.createdAt || post.created_at || post.created;
+  if (createdAt && typeof createdAt === "object") {
+    // If it's already a JS Date
+    if (createdAt instanceof Date) return createdAt;
+    // Firestore stamp
+    if (
+      (typeof createdAt.seconds === "number" ||
+        typeof createdAt.seconds === "string") &&
+      typeof createdAt.nanoseconds === "number"
+    ) {
+      const secs = Number(createdAt.seconds);
+      const nanos = Number(createdAt.nanoseconds || 0);
+      return new Date(secs * 1000 + Math.round(nanos / 1000000));
+    }
+    // Sometimes stringified object: try to parse date string if present
+    if (createdAt.toDate && typeof createdAt.toDate === "function") {
       try {
-        // Replace this endpoint to match your backend (Firestore function / Next API)
-        const res = await fetch(`/api/posts/${encodeURIComponent(postId)}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`Failed to load post: ${res.status}`);
-        const data = await res.json();
-        setPost(data);
-      } catch (err) {
-        if (err.name !== "AbortError") setError(err.message || "Unknown error");
-      } finally {
-        setLoading(false);
+        return createdAt.toDate();
+      } catch (e) {
+        // continue
       }
-    })();
+    }
+  }
 
-    return () => controller.abort();
-  }, [initialPost, postId]);
+  // 3) If createdAt is text or ISO
+  if (typeof createdAt === "string") {
+    const parsed = new Date(createdAt);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
 
-  // Optionally fetch related posts by tag
-  useEffect(() => {
-    if (!fetchRelated) return;
-    if (!post?.tag) return;
+  // 4) fallback to post.time if it's a full date string
+  if (post.time && typeof post.time === "string") {
+    const parsed = new Date(post.time);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
 
-    const controller = new AbortController();
-    (async () => {
-      try {
-        // Endpoint: GET /api/posts?tag=<tag>&limit=3
-        const res = await fetch(
-          `/api/posts?tag=${encodeURIComponent(post.tag)}&limit=3`,
-          { signal: controller.signal }
-        );
-        if (!res.ok) throw new Error("Failed to load related posts");
-        const data = await res.json();
-        // filter out the current post if present
-        const filtered = Array.isArray(data)
-          ? data.filter(
-              (p) =>
-                String(p?.id || p?.time || p?.title) !==
-                String(post?.id || post?.time || post?.title)
-            )
-          : [];
-        setRelated(filtered);
-      } catch (err) {
-        // non-fatal; just leave related null
-      }
-    })();
-    return () => controller.abort();
-  }, [fetchRelated, post?.tag, post?.id, post?.time, post?.title]);
+  return null;
+}
 
-  const dateLabel = formatDate(post || {});
+function formatDateLabel(post) {
+  const date = getDateFromPost(post);
+  if (!date) return "तिथि उपलब्ध नहीं";
+  const d = date.getDate();
+  const m = date.getMonth();
+  const y = date.getFullYear();
+  const monthName =
+    HINDI_MONTHS[m] || date.toLocaleString("hi-IN", { month: "long" });
+  return `${d} ${monthName}, ${y}`;
+}
 
-  // Render logic for article content (keeps behavior from previous component)
-  const renderContent = (contentArray) => {
-    if (!Array.isArray(contentArray) || contentArray.length === 0) {
+/* ------------------------- Content renderer ------------------------- */
+
+/**
+ * Render content blocks flexibly.
+ * Accepts array of:
+ *  - simple strings
+ *  - objects like { text }, { paragraph }, { type: 'image', src, caption }, { type: 'list', items: [...] }
+ *  - nested arrays
+ */
+function renderContentArray(contentArray) {
+  if (!Array.isArray(contentArray) || contentArray.length === 0) {
+    return (
+      <p className="mb-4 text-gray-700">
+        पूरा लेख प्रकाशित होते ही यहाँ दिखेगा।
+      </p>
+    );
+  }
+
+  return contentArray.map((block, idx) => {
+    // nested arrays
+    if (Array.isArray(block)) {
       return (
-        <>
-          {post?.excerpt ? (
-            <p className="mb-4 text-gray-700">{post.excerpt}</p>
-          ) : null}
-          <p className="text-gray-700">
-            पूरा लेख प्रकाशित होते ही यहाँ दिखेगा।
-          </p>
-        </>
+        <div key={idx} className="mb-4">
+          {renderContentArray(block)}
+        </div>
       );
     }
 
-    return contentArray.map((block, idx) => {
-      if (typeof block === "string") {
+    // plain string
+    if (typeof block === "string") {
+      return (
+        <p key={idx} className="mb-4 text-gray-800 leading-relaxed">
+          {block}
+        </p>
+      );
+    }
+
+    // object blocks
+    if (typeof block === "object" && block !== null) {
+      // common fallback properties
+      if (block.text || block.paragraph) {
         return (
-          <p key={idx} className="mb-4 text-gray-800">
-            {block}
+          <p key={idx} className="mb-4 text-gray-800 leading-relaxed">
+            {block.text || block.paragraph}
           </p>
         );
       }
-      if (block && typeof block === "object") {
-        if (block.text)
-          return (
-            <p key={idx} className="mb-4 text-gray-800">
-              {block.text}
-            </p>
-          );
-        if (block.paragraph)
-          return (
-            <p key={idx} className="mb-4 text-gray-800">
-              {block.paragraph}
-            </p>
-          );
+      <AdIframe
+        keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
+        width={728}
+        height={90}
+        format="iframe"
+        // optional params object
+        params={{}}
+        className="mx-auto my-4"
+      />;
+      // headings
+      if (block.type === "h1" || block.heading === "h1") {
+        return (
+          <h2
+            key={idx}
+            className="text-2xl font-bold mb-3"
+            style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
+          >
+            {block.content || block.text || block.headingText}
+          </h2>
+        );
+      }
+      if (block.type === "h2" || block.heading === "h2") {
+        return (
+          <h3 key={idx} className="text-xl font-semibold mb-3">
+            {block.content || block.text || block.headingText}
+          </h3>
+        );
+      }
+
+      // image block
+      if (block.type === "image" || block.img || block.src) {
+        const src = block.src || block.img;
+        return (
+          <figure key={idx} className="mb-6">
+            <img
+              src={src}
+              alt={block.alt || block.caption || "लेख चित्र"}
+              className="w-full max-h-[480px] object-cover rounded-md"
+            />
+            {block.caption ? (
+              <figcaption className="text-sm text-gray-600 mt-2">
+                {block.caption}
+              </figcaption>
+            ) : null}
+          </figure>
+        );
+      }
+
+      // list block
+      if (block.type === "list" || Array.isArray(block.items)) {
+        return (
+          <ul key={idx} className="list-disc pl-6 mb-4 text-gray-800">
+            {(block.items || []).map((it, i) => (
+              <li key={i} className="mb-1">
+                {typeof it === "string" ? it : it.text || JSON.stringify(it)}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+
+      // code / json
+      if (block.code || block.json) {
+        const text = block.code || JSON.stringify(block.json, null, 2);
         return (
           <pre
             key={idx}
             className="mb-4 p-3 rounded bg-gray-50 text-sm text-gray-700 overflow-x-auto"
           >
-            {JSON.stringify(block)}
+            {text}
           </pre>
         );
       }
-      return null;
-    });
-  };
+
+      // fallback: show stringified but readable
+      return (
+        <p key={idx} className="mb-4 text-gray-800">
+          {block.toString ? block.toString() : JSON.stringify(block)}
+        </p>
+      );
+    }
+
+    return null;
+  });
+}
+
+/* ------------------------- Main component ------------------------- */
+/**
+ * Usage:
+ * <SimpleNewsPost post={firestoreDoc} />
+ * or
+ * <SimpleNewsPost post={postData} />
+ */
+export default function SimpleNewsPost({ post: rawPost = {} }) {
+  const post = normalizePost(rawPost);
+
+  const dateLabel = formatDateLabel(post);
+  const hasImage = Boolean(post?.img);
+  const related = Array.isArray(post?.related) ? post.related : [];
+
+  // safe fields with fallbacks
+  const title = post?.title || post?.data?.title || "शीर्षक उपलब्ध नहीं";
+  const excerpt = post?.excerpt || "";
+  const avatar = post?.avatar || "/avatar-placeholder.png";
+  const author = post?.author || "लेखक";
+  const views = typeof post?.views === "number" ? post.views : 0;
+  const likes = typeof post?.likes === "number" ? post.likes : 0;
+  const published = Boolean(post?.published);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 antialiased">
@@ -230,22 +317,36 @@ export default function SimpleNewsPost({
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap"
         rel="stylesheet"
       />
-
+      <AdIframe
+        keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
+        width={728}
+        height={90}
+        format="iframe"
+        // optional params object
+        params={{}}
+        className="mx-auto my-4"
+      />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex md:items-start">
             <div className="md:flex-1">
-              {/* Loading / placeholder image */}
-              {loading ? (
-                <div className="w-full h-56 md:h-80 bg-gray-100 animate-pulse" />
-              ) : (
+              {/* Hero Image */}
+              <div className="w-full h-56 md:h-80 bg-gray-100 overflow-hidden">
                 <img
                   src={post?.img || "/placeholder-1200x600.png"}
-                  alt={post?.title || "लेख चित्र"}
-                  className="w-full h-56 md:h-80 object-cover"
+                  alt={title}
+                  className="w-full h-full object-cover"
                 />
-              )}
-
+              </div>
+              <AdIframe
+                keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
+                width={728}
+                height={90}
+                format="iframe"
+                // optional params object
+                params={{}}
+                className="mx-auto my-4"
+              />
               <div className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="inline-flex items-center bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">
@@ -253,30 +354,25 @@ export default function SimpleNewsPost({
                   </span>
                 </div>
 
-                {/* Title / loading */}
                 <h1
                   className="text-2xl md:text-4xl font-extrabold leading-tight mb-4"
                   style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
                 >
-                  {loading ? (
-                    <span className="inline-block w-64 h-8 bg-gray-200 animate-pulse rounded" />
-                  ) : (
-                    post?.title || "शीर्षक उपलब्ध नहीं"
-                  )}
+                  {title}
                 </h1>
 
                 {/* Excerpt */}
-                {!loading && post?.excerpt ? (
+                {excerpt ? (
                   <p className="text-gray-700 text-base md:text-lg mb-6">
-                    {post.excerpt}
+                    {excerpt}
                   </p>
                 ) : null}
 
-                {/* Meta row */}
+                {/* Meta */}
                 <div className="flex flex-wrap items-center text-sm text-gray-500 gap-4 mb-6">
                   <span className="inline-flex items-center gap-2">
                     <UserIcon className="w-4 h-4" />
-                    {post?.author || "लेखक"}
+                    {author}
                   </span>
                   <span className="inline-flex items-center gap-2">
                     <CalendarIcon className="w-4 h-4" />
@@ -294,7 +390,20 @@ export default function SimpleNewsPost({
                       <path d="M15 10l4.553-2.276A2 2 0 0 1 22 9.618V17a2 2 0 0 1-2 2h-6" />
                       <path d="M10 14L4.447 16.276A2 2 0 0 1 2 14.382V7a2 2 0 0 1 2-2h6" />
                     </svg>
-                    {post?.views ?? 0} बार देखा गया
+                    {views} बार देखा गया
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                    {likes} लाइक्स
                   </span>
                 </div>
 
@@ -303,19 +412,19 @@ export default function SimpleNewsPost({
                   className="prose prose-lg max-w-none text-gray-800"
                   style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
                 >
-                  {loading ? (
-                    <>
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
-                      <div className="h-4 bg-gray-200 rounded w-full mb-3 animate-pulse" />
-                      <div className="h-4 bg-gray-200 rounded w-5/6 mb-3 animate-pulse" />
-                    </>
-                  ) : error ? (
-                    <p className="text-red-600">त्रुटि: {error}</p>
-                  ) : (
-                    renderContent(post?.content)
+                  {renderContentArray(
+                    post?.content || post?.content?.blocks || []
                   )}
                 </div>
-
+                <AdIframe
+                  keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
+                  width={728}
+                  height={90}
+                  format="iframe"
+                  // optional params object
+                  params={{}}
+                  className="mx-auto my-4"
+                />
                 {/* share + tags */}
                 <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex flex-wrap gap-2">
@@ -331,30 +440,33 @@ export default function SimpleNewsPost({
                     <span className="text-sm font-semibold text-gray-700">
                       शेयर करें:
                     </span>
-                    <button
+                    <a
+                      href={
+                        title
+                          ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                              title + (excerpt ? " — " + excerpt : "")
+                            )}`
+                          : "#"
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label="ट्विटर पर साझा करें"
                       className="p-2 rounded-md hover:bg-gray-100"
                     >
                       <TwitterIcon />
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Sidebar: related posts (renders only if related array exists or fetchRelated is false and related received via prop) */}
-            {(related && related.length > 0) ||
-            (!fetchRelated &&
-              Array.isArray(initialPost?.related) &&
-              initialPost.related.length > 0) ? (
+            {/* Sidebar: related posts if provided */}
+            {related.length > 0 ? (
               <aside className="hidden md:block md:w-80 lg:w-96 bg-gray-50 border-l border-gray-100">
                 <div className="p-6">
                   <h3 className="text-lg font-bold mb-4">यह भी पढ़ें</h3>
                   <div className="space-y-4">
-                    {(related && related.length > 0
-                      ? related
-                      : initialPost?.related || []
-                    ).map((r, i) => (
+                    {related.map((r, i) => (
                       <a
                         key={i}
                         href={r.link || "#"}
@@ -386,25 +498,21 @@ export default function SimpleNewsPost({
         <section className="mt-12">
           <div className="bg-white rounded-lg shadow-sm p-6 flex flex-col sm:flex-row items-center gap-4">
             <img
-              src={post?.avatar || "/avatar-placeholder.png"}
-              alt={post?.author || "लेखक"}
+              src={avatar}
+              alt={author}
               className="w-20 h-20 rounded-full object-cover"
             />
             <div>
-              <h4 className="font-bold">{post?.author || "लेखक"}</h4>
+              <h4 className="font-bold">{author}</h4>
               <p className="text-sm text-gray-600">
-                {post?.author
-                  ? `लेखक — ${post.author}`
-                  : "लेखक जानकारी उपलब्ध नहीं"}{" "}
-                {post?.published ? " · प्रकाशित" : " · ड्राफ्ट"}
+                {author ? `लेखक — ${author}` : "लेखक जानकारी उपलब्ध नहीं"}{" "}
+                {published ? " · प्रकाशित" : " · ड्राफ्ट"}
               </p>
               <a
                 href={post?.authorLink || "#"}
                 className="text-sm font-semibold text-red-600 mt-2 inline-block"
               >
-                {post?.author
-                  ? `${post.author} के और लेख पढ़ें →`
-                  : "और पढ़ें →"}
+                {author ? `${author} के और लेख पढ़ें →` : "और पढ़ें →"}
               </a>
             </div>
           </div>
