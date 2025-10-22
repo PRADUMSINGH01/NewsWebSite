@@ -9,8 +9,8 @@ import Logo from "@/public/logo.png";
 import Image from "next/image";
 import AdBanner from "@/components/AdBanner";
 import SimpleAd from "@/components/SimpleAd";
-// import EffectiveGateAd from "@/components/EffectiveGateAd";
-// import HighPerfAd from "@/components/HighPerfAd";
+import EffectiveGateAd from "@/components/EffectiveGateAd";
+import HighPerfAd from "@/components/HighPerfAd";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -185,7 +185,7 @@ const Header = ({ setShowSearch }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
           <div className="flex items-center gap-6">
             <a
-              href="#"
+              href="/"
               className="flex items-center gap-3"
               aria-label="देश खबर होमपेज"
             >
@@ -202,23 +202,26 @@ const Header = ({ setShowSearch }) => {
               aria-label="मुख्य नेविगेशन"
             >
               {[
-                "समाचार",
-                "राजनीति",
-                "मनोरंजन",
-                "खेल",
-                "नौकरी",
-                "टेक",
-                "कविता",
-                "कहानी",
-                "रोचक तथ्य",
-                "फ़िल्मी दुनिया",
+                {t:"समाचार",url:"news"},
+              
+                {t:"टेक",url:"tech"},  
+                {t:"खेल",url:"sports"},
+                {t:"कविता",url:"kavita"},
+                {t:"कहानी",url:"kahani"},
+
+                {t:"रोचक तथ्य",url:"facts"},
+                {t:"फ़िल्मी दुनिया",url:"film"},
+
+                {t:"फोटो गैलरी",url:"photo-gallery"},
+
+            
               ].map((c) => (
                 <a
                   key={c}
-                  href="#"
+                  href={c.url}
                   className="text-sm font-medium px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-[#0f4c4c] transition-colors"
                 >
-                  {c}
+                  {c.t}
                 </a>
               ))}
             </nav>
@@ -280,7 +283,7 @@ const Hero = ({ lead, trending = [] }) => (
           loading="lazy"
         />
 
-        <Link href={"/Diwali"}>
+        <Link href={`Read-full-news/${lead.title}`}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
@@ -327,7 +330,7 @@ const Hero = ({ lead, trending = [] }) => (
               />
               <div className="flex-1">
                 <a
-                  href={t.title}
+                  href={`Read-full-news/${t.title}`}
                   className="font-semibold text-sm leading-snug text-gray-800 group-hover:text-[#0f4c4c] transition-colors line-clamp-2"
                 >
                   {t.title}
@@ -475,8 +478,8 @@ export default function App() {
             ))}
           </div>
         </section>
-        {/* <HighPerfAd /> */}
-        {/* <AdBanner /> */}
+        <HighPerfAd />
+        <AdBanner />
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
@@ -496,14 +499,14 @@ export default function App() {
           trending={SAMPLE_ARTICLES.slice(1, 3)}
         />
         <section className="my-12">
-          {/* <EffectiveGateAd /> */}
+          <EffectiveGateAd />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.slice(18, 22).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
-          {/* <EffectiveGateAd /> */}
+          <EffectiveGateAd />
         </section>
       </main>
 

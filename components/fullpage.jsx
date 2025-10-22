@@ -1,7 +1,16 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-// Simple responsive news post + related posts (No navbar, no footer)
+/**
+ * Props:
+ * - post?: object            // full post data (preferred, server-provided)
+ * - postId?: string          // id to fetch from /api/posts/[id]
+ * - fetchRelated?: boolean   // whether to fetch related posts by tag
+ *
+ * Endpoint assumptions (change to match your backend):
+ * - GET /api/posts/{id} -> returns post object
+ * - GET /api/posts?tag=TAG&limit=3 -> returns array of related posts
+ */
 
 const UserIcon = ({ className = "w-5 h-5" }) => (
   <svg
@@ -50,30 +59,167 @@ const TwitterIcon = () => (
   </svg>
 );
 
-// Related posts data (static placeholders)
-const RELATED = [
-  {
-    title: "स्टार्टअप इंडिया: छोटे शहरों से नई चमक",
-    excerpt:
-      "टियर-2 और टियर-3 शहरों से निकलते स्टार्टअप्स किस तरह अवसर बना रहे हैं।",
-    image: "https://placehold.co/600x400/fb923c/ffffff?text=स्टार्टअप",
-  },
-  {
-    title: "आयुष्मान योजना ने दिए 5 करोड़ लाभ",
-    excerpt: "यह योजना किस तरह आम लोगों की जिंदगी बदल रही है।",
-    image: "https://placehold.co/600x400/60a5fa/ffffff?text=स्वास्थ्य",
-  },
-  {
-    title: "सौर ऊर्जा का नया रिकॉर्ड",
-    excerpt: "भारत ने सौर ऊर्जा में नया महत्वाकांक्षी लक्ष्य हासिल किया।",
-    image: "https://placehold.co/600x400/4ade80/ffffff?text=ऊर्जा",
-  },
-];
+/* ------------------------- Utility: format date ------------------------- */
+function formatDate(post) {
+  const hindiMonths = [
+    "जनवरी",
+    "फ़रवरी",
+    "मार्च",
+    "अप्रैल",
+    "मई",
+    "जून",
+    "जुलाई",
+    "अगस्त",
+    "सितंबर",
+    "अक्टूबर",
+    "नवंबर",
+    "दिसंबर",
+  ];
 
-export default function SimpleNewsPost() {
+  if (post?.time && /^\d{1,2}-\d{1,2}-\d{4}$/.test(post.time)) {
+    const [d, m, y] = post.time.split("-").map(Number);
+    const monthName = hindiMonths[m - 1] || post.time;
+    return `${d} ${monthName}, ${y}`;
+  }
+
+  if (post?.createdAt) {
+    try {
+      const parsed = new Date(String(post.createdAt).replace(" at ", " "));
+      if (!Number.isNaN(parsed.getTime())) {
+        const d = parsed.getDate();
+        const m = parsed.getMonth();
+        const y = parsed.getFullYear();
+        return `${d} ${hindiMonths[m]}, ${y}`;
+      }
+    } catch (e) {}
+  }
+
+  return post.time || post.createdAt || "तिथि उपलब्ध नहीं";
+}
+
+/* ------------------------- Main component ------------------------- */
+export default function SimpleNewsPost({
+  post: initialPost = null,
+  postId = null,
+  fetchRelated = false,
+}) {
+  const [post, setPost] = useState(initialPost);
+  const [related, setRelated] = useState(null);
+  const [loading, setLoading] = useState(!initialPost && !!postId);
+  const [error, setError] = useState(null);
+
+  // Fetch post by ID if initialPost not provided
+  useEffect(() => {
+    if (initialPost) return; // already have data
+    if (!postId) return; // nothing to fetch
+
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      try {
+        // Replace this endpoint to match your backend (Firestore function / Next API)
+        const res = await fetch(`/api/posts/${encodeURIComponent(postId)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`Failed to load post: ${res.status}`);
+        const data = await res.json();
+        setPost(data);
+      } catch (err) {
+        if (err.name !== "AbortError") setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [initialPost, postId]);
+
+  // Optionally fetch related posts by tag
+  useEffect(() => {
+    if (!fetchRelated) return;
+    if (!post?.tag) return;
+
+    const controller = new AbortController();
+    (async () => {
+      try {
+        // Endpoint: GET /api/posts?tag=<tag>&limit=3
+        const res = await fetch(
+          `/api/posts?tag=${encodeURIComponent(post.tag)}&limit=3`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) throw new Error("Failed to load related posts");
+        const data = await res.json();
+        // filter out the current post if present
+        const filtered = Array.isArray(data)
+          ? data.filter(
+              (p) =>
+                String(p?.id || p?.time || p?.title) !==
+                String(post?.id || post?.time || post?.title)
+            )
+          : [];
+        setRelated(filtered);
+      } catch (err) {
+        // non-fatal; just leave related null
+      }
+    })();
+    return () => controller.abort();
+  }, [fetchRelated, post?.tag, post?.id, post?.time, post?.title]);
+
+  const dateLabel = formatDate(post || {});
+
+  // Render logic for article content (keeps behavior from previous component)
+  const renderContent = (contentArray) => {
+    if (!Array.isArray(contentArray) || contentArray.length === 0) {
+      return (
+        <>
+          {post?.excerpt ? (
+            <p className="mb-4 text-gray-700">{post.excerpt}</p>
+          ) : null}
+          <p className="text-gray-700">
+            पूरा लेख प्रकाशित होते ही यहाँ दिखेगा।
+          </p>
+        </>
+      );
+    }
+
+    return contentArray.map((block, idx) => {
+      if (typeof block === "string") {
+        return (
+          <p key={idx} className="mb-4 text-gray-800">
+            {block}
+          </p>
+        );
+      }
+      if (block && typeof block === "object") {
+        if (block.text)
+          return (
+            <p key={idx} className="mb-4 text-gray-800">
+              {block.text}
+            </p>
+          );
+        if (block.paragraph)
+          return (
+            <p key={idx} className="mb-4 text-gray-800">
+              {block.paragraph}
+            </p>
+          );
+        return (
+          <pre
+            key={idx}
+            className="mb-4 p-3 rounded bg-gray-50 text-sm text-gray-700 overflow-x-auto"
+          >
+            {JSON.stringify(block)}
+          </pre>
+        );
+      }
+      return null;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 antialiased">
-      {/* font preconnect (keeps things self-contained for copy/paste) */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link
         rel="preconnect"
@@ -89,87 +235,95 @@ export default function SimpleNewsPost() {
         <article className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex md:items-start">
             <div className="md:flex-1">
-              <img
-                src="https://placehold.co/1200x600/dc2626/ffffff?text=कृषि-मित्र+पोर्टल&font=noto+sans"
-                alt="कृषि-मित्र पोर्टल"
-                className="w-full h-56 md:h-80 object-cover"
-              />
+              {/* Loading / placeholder image */}
+              {loading ? (
+                <div className="w-full h-56 md:h-80 bg-gray-100 animate-pulse" />
+              ) : (
+                <img
+                  src={post?.img || "/placeholder-1200x600.png"}
+                  alt={post?.title || "लेख चित्र"}
+                  className="w-full h-56 md:h-80 object-cover"
+                />
+              )}
+
               <div className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="inline-flex items-center bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">
-                    प्रौद्योगिकी
+                    {post?.tag || "समाचार"}
                   </span>
                 </div>
 
+                {/* Title / loading */}
                 <h1
                   className="text-2xl md:text-4xl font-extrabold leading-tight mb-4"
                   style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
                 >
-                  डिजिटल इंडिया: सरकार ने किसानों के लिए 'कृषि-मित्र' पोर्टल
-                  लॉन्च किया
+                  {loading ? (
+                    <span className="inline-block w-64 h-8 bg-gray-200 animate-pulse rounded" />
+                  ) : (
+                    post?.title || "शीर्षक उपलब्ध नहीं"
+                  )}
                 </h1>
 
-                <p className="text-gray-700 text-base md:text-lg mb-6">
-                  नया पोर्टल किसानों को मौसम, मंडी भाव और सरकारी योजनाओं की सीधी
-                  जानकारी देगा — उद्देश्य: आय में वृद्धि और पारदर्शिता।
-                </p>
+                {/* Excerpt */}
+                {!loading && post?.excerpt ? (
+                  <p className="text-gray-700 text-base md:text-lg mb-6">
+                    {post.excerpt}
+                  </p>
+                ) : null}
 
+                {/* Meta row */}
                 <div className="flex flex-wrap items-center text-sm text-gray-500 gap-4 mb-6">
                   <span className="inline-flex items-center gap-2">
                     <UserIcon className="w-4 h-4" />
-                    संवाददाता — रवि शर्मा
+                    {post?.author || "लेखक"}
                   </span>
                   <span className="inline-flex items-center gap-2">
                     <CalendarIcon className="w-4 h-4" />
-                    21 अक्टूबर, 2025
+                    {dateLabel}
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M15 10l4.553-2.276A2 2 0 0 1 22 9.618V17a2 2 0 0 1-2 2h-6" />
+                      <path d="M10 14L4.447 16.276A2 2 0 0 1 2 14.382V7a2 2 0 0 1 2-2h6" />
+                    </svg>
+                    {post?.views ?? 0} बार देखा गया
                   </span>
                 </div>
 
+                {/* Content */}
                 <div
                   className="prose prose-lg max-w-none text-gray-800"
                   style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
                 >
-                  <p>
-                    <strong>नई दिल्ली:</strong> डिजिटल इंडिया के तहत केंद्र
-                    सरकार ने 'कृषि-मित्र' पोर्टल लॉन्च किया है। इसका उद्देश्य
-                    किसानों को तकनीक के माध्यम से जोड़ना और उन्हें तुरंत उपयोगी
-                    जानकारी उपलब्ध कराना है।
-                  </p>
-
-                  <h2>मुख्य विशेषताएं</h2>
-                  <ul>
-                    <li>रियल-टाइम मौसम पूर्वानुमान और क्षेत्रीय सलाह</li>
-                    <li>बाजार भाव और मंडियों की पारदर्शिता</li>
-                    <li>बीज, उर्वरक और सब्सिडी जानकारी</li>
-                    <li>क्षेत्रीय भाषाओं में सरल इंटरफ़ेस</li>
-                  </ul>
-
-                  <p>
-                    सरकार ने कहा है कि पोर्टल फसल सलाह, कीट प्रबंधन और मिट्टी
-                    स्वास्थ्य संबंधी सुझाव भी देगा, जिससे किसान बेहतर निर्णय ले
-                    सकेंगे।
-                  </p>
-
-                  <p>
-                    यह पहल प्रधानमंत्री के 2025 तक किसानों की आय दोगुनी करने के
-                    लक्ष्य को आगे बढ़ाने की कोशिश है।
-                  </p>
+                  {loading ? (
+                    <>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded w-full mb-3 animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded w-5/6 mb-3 animate-pulse" />
+                    </>
+                  ) : error ? (
+                    <p className="text-red-600">त्रुटि: {error}</p>
+                  ) : (
+                    renderContent(post?.content)
+                  )}
                 </div>
 
-                {/* share + tags row */}
+                {/* share + tags */}
                 <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex flex-wrap gap-2">
                     <span className="text-sm font-semibold text-gray-700 mr-2">
                       टैग:
                     </span>
                     <span className="text-xs bg-gray-200 px-3 py-1 rounded-full">
-                      #डिजिटलइंडिया
-                    </span>
-                    <span className="text-xs bg-gray-200 px-3 py-1 rounded-full">
-                      #किसान
-                    </span>
-                    <span className="text-xs bg-gray-200 px-3 py-1 rounded-full">
-                      #प्रौद्योगिकी
+                      #{(post?.tag || "समाचार").replace(/\s+/g, "")}
                     </span>
                   </div>
 
@@ -183,87 +337,74 @@ export default function SimpleNewsPost() {
                     >
                       <TwitterIcon />
                     </button>
-                    {/* Add more icons if desired */}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Sidebar (on md+ shows related posts) */}
-            <aside className="hidden md:block md:w-80 lg:w-96 bg-gray-50 border-l border-gray-100">
-              <div className="p-6">
-                <h3 className="text-lg font-bold mb-4">यह भी पढ़ें</h3>
-                <div className="space-y-4">
-                  {RELATED.map((r, i) => (
-                    <a
-                      key={i}
-                      href="#"
-                      className="flex gap-3 items-start group"
-                    >
-                      <img
-                        src={r.image}
-                        alt={r.title}
-                        className="w-20 h-16 object-cover rounded-md flex-shrink-0"
-                      />
-                      <div>
-                        <h4 className="text-sm font-semibold group-hover:text-red-600">
-                          {r.title}
-                        </h4>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {r.excerpt}
-                        </p>
-                      </div>
-                    </a>
-                  ))}
+            {/* Sidebar: related posts (renders only if related array exists or fetchRelated is false and related received via prop) */}
+            {(related && related.length > 0) ||
+            (!fetchRelated &&
+              Array.isArray(initialPost?.related) &&
+              initialPost.related.length > 0) ? (
+              <aside className="hidden md:block md:w-80 lg:w-96 bg-gray-50 border-l border-gray-100">
+                <div className="p-6">
+                  <h3 className="text-lg font-bold mb-4">यह भी पढ़ें</h3>
+                  <div className="space-y-4">
+                    {(related && related.length > 0
+                      ? related
+                      : initialPost?.related || []
+                    ).map((r, i) => (
+                      <a
+                        key={i}
+                        href={r.link || "#"}
+                        className="flex gap-3 items-start group"
+                      >
+                        <img
+                          src={r.image || "/placeholder-600x400.png"}
+                          alt={r.title}
+                          className="w-20 h-16 object-cover rounded-md flex-shrink-0"
+                        />
+                        <div>
+                          <h4 className="text-sm font-semibold group-hover:text-red-600">
+                            {r.title}
+                          </h4>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {r.excerpt}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </aside>
+              </aside>
+            ) : null}
           </div>
         </article>
 
-        {/* Related posts block for small screens - below the article */}
-        <section className="mt-10 md:hidden">
-          <h3 className="text-2xl font-extrabold mb-6 text-gray-900">
-            यह भी पढ़ें
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {RELATED.map((r, i) => (
-              <article
-                key={i}
-                className="bg-white rounded-lg shadow-sm overflow-hidden"
-              >
-                <img
-                  src={r.image}
-                  alt={r.title}
-                  className="w-full h-40 object-cover"
-                />
-                <div className="p-4">
-                  <h4 className="text-sm font-bold mb-2">{r.title}</h4>
-                  <p className="text-xs text-gray-600">{r.excerpt}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Author bio (keeps layout simple and responsive) */}
+        {/* Author bio */}
         <section className="mt-12">
           <div className="bg-white rounded-lg shadow-sm p-6 flex flex-col sm:flex-row items-center gap-4">
             <img
-              src="https://placehold.co/96x96/fca5a5/1e293b?text=RS"
-              alt="रवि शर्मा"
+              src={post?.avatar || "/avatar-placeholder.png"}
+              alt={post?.author || "लेखक"}
               className="w-20 h-20 rounded-full object-cover"
             />
             <div>
-              <h4 className="font-bold">रवि शर्मा</h4>
+              <h4 className="font-bold">{post?.author || "लेखक"}</h4>
               <p className="text-sm text-gray-600">
-                अनुभवी संवाददाता — कृषि और प्रौद्योगिकी रिपोर्टिंग
+                {post?.author
+                  ? `लेखक — ${post.author}`
+                  : "लेखक जानकारी उपलब्ध नहीं"}{" "}
+                {post?.published ? " · प्रकाशित" : " · ड्राफ्ट"}
               </p>
               <a
-                href="#"
+                href={post?.authorLink || "#"}
                 className="text-sm font-semibold text-red-600 mt-2 inline-block"
               >
-                रवि के और लेख पढ़ें →
+                {post?.author
+                  ? `${post.author} के और लेख पढ़ें →`
+                  : "और पढ़ें →"}
               </a>
             </div>
           </div>
