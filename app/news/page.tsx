@@ -1,14 +1,7 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
-import {
-  Search,
-  Filter,
-  Grid,
-  List,
-  Loader,
-  Image as ImageIcon,
-} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Search, Clock, Eye, TrendingUp, Mail, BookOpen } from "lucide-react";
 
 /* ------------------- Types ------------------- */
 
@@ -21,24 +14,16 @@ type Article = {
   time: string;
   publishedAt: string;
   img: string;
-  credit: string;
   avatar: string;
   featured: boolean;
   readMinutes: number;
-  likes: number;
-  shares: number;
   views: number;
   trending: boolean;
 };
 
-type Columns = { sm?: number; md?: number; lg?: number };
-
 type NewsFeedProps = {
   articles?: Article[];
-  columns?: Columns;
 };
-
-type Sort = "latest" | "popular" | "trending";
 
 /* ------------------- SAMPLE DATA ------------------- */
 
@@ -48,17 +33,14 @@ const SAMPLE_ARTICLES: Article[] = [
     tag: "राजनीति",
     title: "संसद का मानसून सत्र: नए विधेयकों पर होगी गरमागरम बहस",
     excerpt:
-      "सरकार इस सत्र में कई महत्वपूर्ण विधेयक पेश करने की तैयारी में है, विपक्ष ने भी अपनी रणनीति बना ली है। आर्थिक सुधार और शिक्षा नीति पर विशेष ध्यान दिया जाएगा।",
+      "सरकार इस सत्र में कई महत्वपूर्ण विधेयक पेश करने की तैयारी में है, विपक्ष ने भी अपनी रणनीति बना ली है।",
     author: "रवि प्रकाश",
     time: "2 घंटे पहले",
     publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1602339257297-2519247c9e9d?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / A. L.",
+    img: "https://images.unsplash.com/photo-1602339257297-2519247c9e9d?auto=format&fit=crop&w=600&h=400&q=80",
     avatar: "https://i.pravatar.cc/96?img=1",
     featured: true,
     readMinutes: 4,
-    likes: 142,
-    shares: 28,
     views: 1250,
     trending: true,
   },
@@ -67,36 +49,30 @@ const SAMPLE_ARTICLES: Article[] = [
     tag: "अर्थव्यवस्था",
     title: "बजट 2026: क्या बदलेंगे टैक्स नियम?",
     excerpt:
-      "विशेषज्ञों का कहना है कि आगामी बजट में मध्यम वर्ग के लिए राहत संभव है, लेकिन कुछ फाइलिंग नियम सख्त हो सकते हैं।",
+      "विशेषज्ञों का कहना है कि आगामी बजट में मध्यम वर्ग के लिए राहत संभव है।",
     author: "संगीता मेहता",
     time: "6 घंटे पहले",
     publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1559526324-593bc073d938?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / Finance",
+    img: "https://images.unsplash.com/photo-1559526324-593bc073d938?auto=format&fit=crop&w=600&h=400&q=80",
     avatar: "https://i.pravatar.cc/96?img=5",
     featured: false,
     readMinutes: 5,
-    likes: 98,
-    shares: 12,
     views: 980,
     trending: false,
   },
   {
     id: 3,
-    tag: "टेक",
+    tag: "टेक्नोलॉजी",
     title: "नया स्मार्टफोन लॉन्च: क्या है खास?",
     excerpt:
-      "बाजार में आया नया स्मार्टफोन शक्तिशाली कैमरा और लंबी बैटरी लाइफ के साथ। यहाँ हमने प्रमुख फीचर्स का विश्लेषण किया है।",
+      "बाजार में आया नया स्मार्टफोन शक्तिशाली कैमरा और लंबी बैटरी लाइफ के साथ।",
     author: "नीलू शर्मा",
     time: "1 दिन पहले",
     publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / Tech",
+    img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&h=400&q=80",
     avatar: "https://i.pravatar.cc/96?img=12",
     featured: false,
     readMinutes: 6,
-    likes: 320,
-    shares: 54,
     views: 4300,
     trending: true,
   },
@@ -105,17 +81,14 @@ const SAMPLE_ARTICLES: Article[] = [
     tag: "खेल",
     title: "क्रिकेट विश्व कप: रोमांचक मुकाबला होने की उम्मीद",
     excerpt:
-      "टीमें फॉर्म में लौट आई हैं और दर्शकों को बेहतरीन मुकाबले देखने को मिल सकता है। कप्तानों ने रणनीति पर जोर दिया।",
+      "टीमें फॉर्म में लौट आई हैं और दर्शकों को बेहतरीन मुकाबले देखने को मिल सकता है।",
     author: "अजय वर्मा",
     time: "3 दिन पहले",
     publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / Sports",
+    img: "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=600&h=400&q=80",
     avatar: "https://i.pravatar.cc/96?img=20",
     featured: false,
     readMinutes: 7,
-    likes: 210,
-    shares: 30,
     views: 2100,
     trending: false,
   },
@@ -124,17 +97,14 @@ const SAMPLE_ARTICLES: Article[] = [
     tag: "स्वास्थ्य",
     title: "डाइट मिथ्स: क्या सच है क्या मिथक?",
     excerpt:
-      "पोषण विशेषज्ञ बताते हैं कि रोजमर्रा की गलतफहमियाँ कैसे आपके लक्ष्य रोक सकती हैं और किन आदतों को अपनाना चाहिए।",
+      "पोषण विशेषज्ञ बताते हैं कि रोजमर्रा की गलतफहमियाँ कैसे आपके लक्ष्य रोक सकती हैं।",
     author: "डॉ. मीरा",
     time: "5 दिन पहले",
     publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / Health",
+    img: "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?auto=format&fit=crop&w=600&h=400&q=80",
     avatar: "https://i.pravatar.cc/96?img=8",
     featured: false,
     readMinutes: 3,
-    likes: 85,
-    shares: 9,
     views: 720,
     trending: false,
   },
@@ -143,615 +113,366 @@ const SAMPLE_ARTICLES: Article[] = [
     tag: "मनोरंजन",
     title: "नया फिल्मी ट्रेलर हुआ रिलीज़: समीक्षा",
     excerpt:
-      "ट्रेलर में दिखी कहानी और प्रदर्शन ने दर्शकों की जिज्ञासा बढ़ा दी है — यहाँ पहली नज़र की समीक्षा पढ़ें।",
+      "ट्रेलर में दिखी कहानी और प्रदर्शन ने दर्शकों की जिज्ञासा बढ़ा दी है।",
     author: "रेखा कपूर",
     time: "12 घंटे पहले",
     publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1511659009414-79f6a2f6b1a8?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / Movies",
+    img: "https://images.unsplash.com/photo-1511659009414-79f6a2f6b1a8?auto=format&fit=crop&w=600&h=400&q=80",
     avatar: "https://i.pravatar.cc/96?img=3",
     featured: false,
     readMinutes: 4,
-    likes: 470,
-    shares: 80,
     views: 5400,
-    trending: true,
-  },
-  {
-    id: 7,
-    tag: "टेक",
-    title: "AI में नई रिसर्च: मॉडल्स और सीमाएँ",
-    excerpt:
-      "शोधकर्ता बताते हैं कि अभी किन-किन सीमाओं पर काम करना बाकी है और अगला कदम क्या हो सकता है।",
-    author: "अरविंद",
-    time: "8 घंटे पहले",
-    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&h=900&q=80",
-    credit: "Unsplash / AI",
-    avatar: "https://i.pravatar.cc/96?img=7",
-    featured: false,
-    readMinutes: 10,
-    likes: 610,
-    shares: 120,
-    views: 7800,
     trending: true,
   },
 ];
 
-/* ------------------- Image Loader Hook & ProgressiveImage ------------------- */
-
-function useImageLoader(src?: string) {
-  const [status, setStatus] = useState<"loading" | "loaded" | "error">(
-    src ? "loading" : "error"
-  );
-  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!src) {
-      setStatus("error");
-      return;
-    }
-
-    setStatus("loading");
-    setLoadedSrc(null);
-
-    const img = new Image();
-    img.src = src;
-
-    const handleLoad = () => {
-      setStatus("loaded");
-      setLoadedSrc(src);
-    };
-
-    const handleError = () => {
-      setStatus("error");
-    };
-
-    img.addEventListener("load", handleLoad);
-    img.addEventListener("error", handleError);
-
-    return () => {
-      img.removeEventListener("load", handleLoad);
-      img.removeEventListener("error", handleError);
-    };
-  }, [src]);
-
-  return { status, loadedSrc };
-}
-
-const ProgressiveImage = React.memo(
-  ({
-    src,
-    alt,
-    className = "",
-    containerClassName = "",
-    fallback = (
-      <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-        <ImageIcon className="w-8 h-8 text-gray-400" />
-      </div>
-    ),
-  }: {
-    src?: string;
-    alt?: string;
-    className?: string;
-    containerClassName?: string;
-    fallback?: React.ReactNode;
-  }) => {
-    const { status, loadedSrc } = useImageLoader(src);
-
-    return (
-      <div className={`relative overflow-hidden ${containerClassName}`}>
-        {status === "loading" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <div className="flex flex-col items-center gap-2">
-              <Loader className="w-6 h-6 text-gray-400 animate-spin" />
-              <span className="text-xs text-gray-500">Loading...</span>
-            </div>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div className="absolute inset-0">{fallback}</div>
-        )}
-
-        {status === "loaded" && loadedSrc && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={loadedSrc}
-            alt={alt}
-            className={`w-full h-full object-cover transition-opacity duration-500 ${className}`}
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        )}
-      </div>
-    );
-  }
-);
-
-ProgressiveImage.displayName = "ProgressiveImage";
-
-/* ------------------- Small UI Components ------------------- */
-
-function FeaturedArticle({ article }: { article: Article }) {
-  return (
-    <article className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100">
-      <div className="lg:col-span-2 relative h-64 lg:h-80">
-        <ProgressiveImage
-          src={article.img}
-          alt={article.title}
-          containerClassName="w-full h-full"
-        />
-        <div className="absolute left-6 bottom-6 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">
-          {article.tag}
-        </div>
-      </div>
-
-      <div className="p-6 flex flex-col gap-4">
-        <h2 className="text-2xl font-bold leading-tight">{article.title}</h2>
-        <p className="text-gray-600">{article.excerpt}</p>
-        <div className="mt-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src={article.avatar}
-              alt={article.author}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <div>
-              <div className="text-sm font-medium">{article.author}</div>
-              <div className="text-xs text-gray-500">
-                {article.time} • {article.readMinutes} min read
-              </div>
-            </div>
-          </div>
-          <div className="text-sm text-gray-500">
-            {article.views.toLocaleString()} views
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
+/* ------------------- Simple Components ------------------- */
 
 function ArticleCard({ article }: { article: Article }) {
   return (
-    <article className="flex flex-col md:flex-row gap-4 p-6">
-      <div className="w-full md:w-48 h-36 rounded-xl overflow-hidden flex-shrink-0">
-        <ProgressiveImage
-          src={article.img}
-          alt={article.title}
-          containerClassName="w-full h-full"
-        />
-      </div>
-      <div className="flex-1 flex flex-col justify-between">
-        <div>
-          <div className="text-xs text-[#0f4c4c] font-semibold mb-1">
-            {article.tag}
+    <article className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300">
+      <div className="flex flex-col h-full">
+        <div className="relative h-48 overflow-hidden">
+          <img
+            src={article.img}
+            alt={article.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-3 left-3">
+            <span className="bg-red-600 text-white px-3 py-1 rounded text-sm font-medium">
+              {article.tag}
+            </span>
           </div>
-          <h3 className="text-lg font-semibold leading-snug">
+          {article.trending && (
+            <div className="absolute top-3 right-3 bg-white p-1 rounded-full shadow-sm">
+              <TrendingUp size={16} className="text-red-600" />
+            </div>
+          )}
+        </div>
+
+        <div className="p-5 flex-1 flex flex-col">
+          <h3 className="font-bold text-lg text-gray-900 mb-3 leading-tight">
             {article.title}
           </h3>
-          <p className="text-sm text-gray-600 mt-2 line-clamp-3">
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-1">
             {article.excerpt}
           </p>
-        </div>
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-3">
-            <img
-              src={article.avatar}
-              alt={article.author}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div>
-              <div className="font-medium">{article.author}</div>
-              <div className="text-xs">{article.time}</div>
+
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <img
+                src={article.avatar}
+                alt={article.author}
+                className="w-6 h-6 rounded-full object-cover"
+              />
+              <span className="text-sm text-gray-700">{article.author}</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Clock size={12} />
+                {article.time}
+              </div>
+              <div className="flex items-center gap-1">
+                <Eye size={12} />
+                {article.views.toLocaleString()}
+              </div>
             </div>
           </div>
-          <div className="text-xs">{article.views.toLocaleString()} views</div>
+
+          <button className="w-full bg-gray-900 text-white py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2">
+            <BookOpen size={16} />
+            पूरा पढ़ें ({article.readMinutes} मिनट)
+          </button>
         </div>
       </div>
     </article>
   );
 }
 
-function TrendingTags({
-  tags,
-  activeTag,
-  onSelect,
-}: {
-  tags: string[];
-  activeTag: string;
-  onSelect: (t: string) => void;
-}) {
+function FeaturedArticle({ article }: { article: Article }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <h4 className="font-semibold mb-4">Trending tags</h4>
-      <div className="flex flex-wrap gap-3">
-        {tags.map((t) => (
-          <button
-            key={t}
-            onClick={() => onSelect(t)}
-            className={`px-4 py-2 rounded-full text-sm ${
-              t === activeTag
-                ? "bg-[#0f4c4c] text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {t}
+    <article className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="relative h-64 lg:h-80">
+          <img
+            src={article.img}
+            alt={article.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-4 left-4">
+            <span className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+              {article.tag}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-6 flex flex-col">
+          <div className="flex-1">
+            <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded text-sm font-medium mb-4 inline-block">
+              मुख्य खबर
+            </span>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 leading-tight">
+              {article.title}
+            </h2>
+            <p className="text-gray-700 mb-6 leading-relaxed text-lg">
+              {article.excerpt}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <img
+                src={article.avatar}
+                alt={article.author}
+                className="w-10 h-10 rounded-full object-cover border-2 border-gray-100"
+              />
+              <div>
+                <div className="text-sm font-semibold text-gray-900">
+                  {article.author}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Clock size={14} />
+                  {article.time} • {article.readMinutes} मिनट
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Eye size={16} />
+              {article.views.toLocaleString()}
+            </div>
+          </div>
+
+          <button className="w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium text-lg flex items-center justify-center gap-2">
+            <BookOpen size={20} />
+            पूरी खबर पढ़ें
           </button>
-        ))}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-function SavedArticles() {
-  // static placeholder — replace with real saved state as needed
+function CategoryFilter({
+  categories,
+  activeCategory,
+  onSelect,
+}: {
+  categories: string[];
+  activeCategory: string;
+  onSelect: (category: string) => void;
+}) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <h4 className="font-semibold mb-4">Saved for later</h4>
-      <div className="text-sm text-gray-600">
-        You haven&lsquo;t saved any articles yet.
-      </div>
+    <div className="flex overflow-x-auto gap-2 py-4 mb-6 scrollbar-hide">
+      {categories.map((category) => (
+        <button
+          key={category}
+          onClick={() => onSelect(category)}
+          className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors duration-200 ${
+            category === activeCategory
+              ? "bg-red-600 text-white shadow-sm"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          {category}
+        </button>
+      ))}
     </div>
   );
 }
 
 function Newsletter() {
   const [email, setEmail] = useState("");
-  const [saved, setSaved] = useState(false);
 
-  const subscribe = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const subscribe = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!email) return;
-    setSaved(true);
+    alert("धन्यवाद! आप सब्सक्राइब हो चुके हैं।");
     setEmail("");
-    // integrate API call here
   };
 
   return (
-    <form
-      onSubmit={subscribe}
-      className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-    >
-      <h4 className="font-semibold mb-3">Subscribe to newsletter</h4>
-      <p className="text-sm text-gray-600 mb-4">
-        Get the day&lsquo;s top stories in your inbox.
+    <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 mt-12">
+      <div className="flex items-center gap-2 mb-3">
+        <Mail size={20} className="text-red-600" />
+        <h3 className="font-bold text-lg text-gray-900">
+          न्यूज़लेटर सब्सक्राइब करें
+        </h3>
+      </div>
+      <p className="text-gray-600 mb-4">
+        दिन की शीर्ष कहानियां अपने इनबॉक्स में प्राप्त करें।
       </p>
-      {saved ? (
-        <div className="text-sm text-green-600">
-          Thanks — you&lsquo;re subscribed!
-        </div>
-      ) : (
-        <div className="flex gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setEmail(e.target.value)
-            }
-            placeholder="Your email"
-            className="flex-1 px-4 py-3 border rounded-2xl focus:outline-none"
-          />
-          <button className="px-4 py-3 bg-[#0f4c4c] text-white rounded-2xl">
-            Subscribe
-          </button>
-        </div>
-      )}
-    </form>
+      <form onSubmit={subscribe} className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="आपका ईमेल पता"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          required
+        />
+        <button
+          type="submit"
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium"
+        >
+          सब्सक्राइब
+        </button>
+      </form>
+    </div>
   );
 }
 
 /* ------------------- Main Component ------------------- */
 
-function NewsFeed({
-  articles = SAMPLE_ARTICLES,
-  columns = { sm: 1, md: 2, lg: 2 },
-}: NewsFeedProps) {
+function HindiNewsPage({ articles = SAMPLE_ARTICLES }: NewsFeedProps) {
   const [query, setQuery] = useState("");
-  const [activeTag, setActiveTag] = useState("All");
-  const [view, setView] = useState<"grid" | "list">("grid");
-  const [sort, setSort] = useState<Sort>("latest");
-  const [pageSize, setPageSize] = useState(6);
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("सभी");
 
-  const tags = useMemo(() => {
-    const tagSet = new Set<string>();
-    articles.forEach((article) => article.tag && tagSet.add(article.tag));
-    return ["All", ...Array.from(tagSet)];
+  const categories = useMemo(() => {
+    const categorySet = new Set<string>();
+    articles.forEach((article) => article.tag && categorySet.add(article.tag));
+    return ["सभी", ...Array.from(categorySet)];
   }, [articles]);
 
   const filteredArticles = useMemo(() => {
     const queryLower = query.trim().toLowerCase();
     const filtered = articles.filter((article) => {
-      const matchesTag = activeTag === "All" || article.tag === activeTag;
+      const matchesCategory =
+        activeCategory === "सभी" || article.tag === activeCategory;
       const matchesQuery =
         !queryLower ||
         article.title.toLowerCase().includes(queryLower) ||
         article.excerpt.toLowerCase().includes(queryLower) ||
-        article.author.toLowerCase().includes(queryLower) ||
-        article.tag.toLowerCase().includes(queryLower);
-      return matchesTag && matchesQuery;
+        article.author.toLowerCase().includes(queryLower);
+      return matchesCategory && matchesQuery;
     });
 
-    if (sort === "latest") {
-      filtered.sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-      );
-    } else {
-      filtered.sort(
-        (a, b) =>
-          (b.trending ? 2 : 0) +
-          (b.featured ? 1 : 0) +
-          b.views / 1000 -
-          ((a.trending ? 2 : 0) + (a.featured ? 1 : 0) + a.views / 1000)
-      );
-    }
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    );
+  }, [articles, query, activeCategory]);
 
-    return filtered;
-  }, [articles, query, activeTag, sort]);
-
-  const visibleArticles = filteredArticles.slice(0, pageSize);
-  const featuredArticle = visibleArticles.find((article) => article.featured);
-  const nonFeaturedArticles = featuredArticle
-    ? visibleArticles.filter((article) => article.id !== featuredArticle.id)
-    : visibleArticles;
-
-  // build safe classes for responsive columns (avoids dynamic template strings)
-  const smCols = columns?.sm ?? 1;
-  const mdCols = columns?.md ?? 2;
-  const lgCols = columns?.lg ?? 2;
-
-  const mapCols = (prefix: string | null, n: number) => {
-    const map: Record<number, string> = {
-      1: `${prefix ? prefix + ":" : ""}grid-cols-1`,
-      2: `${prefix ? prefix + ":" : ""}grid-cols-2`,
-      3: `${prefix ? prefix + ":" : ""}grid-cols-3`,
-      4: `${prefix ? prefix + ":" : ""}grid-cols-4`,
-    };
-    return map[n] || "";
-  };
-
-  const gridClass =
-    view === "grid"
-      ? `grid gap-8 ${mapCols(null, 1)} ${mapCols("sm", smCols)} ${mapCols(
-          "md",
-          mdCols
-        )} ${mapCols("lg", lgCols)}`
-      : "flex flex-col";
-
-  const handleLoadMore = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setPageSize((prev) => prev + 6);
-    setIsLoading(false);
-  };
+  const featuredArticle = filteredArticles.find((article) => article.featured);
+  const regularArticles = featuredArticle
+    ? filteredArticles.filter((article) => !article.featured)
+    : filteredArticles;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl px-6 py-3 mb-6 shadow-lg">
-            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-sm font-semibold text-gray-700">
-              LIVE UPDATES
-            </span>
-          </div>
-          <h1 className="text-5xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">
-            Latest{" "}
-            <span className="text-transparent bg-gradient-to-r from-[#0f4c4c] to-[#1a6b6b] bg-clip-text">
-              News
-            </span>
-          </h1>
-          <p className="text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Stay informed with real-time updates, breaking news, and in-depth
-            analysis from trusted sources worldwide.
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <div className="text-center"></div>
         </div>
+      </div>
 
-        {/* Controls */}
-        <div className="mb-12 bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-gray-200/50">
-          <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
-            <div className="flex flex-col lg:flex-row gap-6 w-full xl:w-auto">
-              <div className="relative flex-1 max-w-xl">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
-                <input
-                  value={query}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setQuery(e.target.value)
-                  }
-                  placeholder="Search for news, topics, or authors..."
-                  className="w-full pl-12 pr-6 py-4 border-2 border-gray-200 rounded-2xl bg-white focus:outline-none focus:ring-4 focus:ring-[#0f4c4c]/20 focus:border-[#0f4c4c] transition-all duration-300 text-lg shadow-sm"
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Filter className="text-gray-400 w-6 h-6" />
-                <select
-                  value={activeTag}
-                  onChange={(e) => setActiveTag(e.target.value)}
-                  className="px-6 py-4 border-2 border-gray-200 rounded-2xl bg-white focus:outline-none focus:ring-4 focus:ring-[#0f4c4c]/20 focus:border-[#0f4c4c] transition-all duration-300 text-lg font-medium shadow-sm"
-                >
-                  {tags.map((tag) => (
-                    <option key={tag} value={tag}>
-                      {tag}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 w-full xl:w-auto">
-              <select
-                value={sort}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setSort(e.target.value as Sort)
-                }
-                className="px-6 py-4 border-2 border-gray-200 rounded-2xl bg-white focus:outline-none focus:ring-4 focus:ring-[#0f4c4c]/20 focus:border-[#0f4c4c] transition-all duration-300 text-lg font-medium shadow-sm"
-              >
-                <option value="latest">Latest</option>
-                <option value="popular">Most Popular</option>
-                <option value="trending">Trending</option>
-              </select>
-
-              <div className="flex items-center gap-2 border-2 border-gray-200 bg-white rounded-2xl p-2 shadow-sm">
-                <button
-                  onClick={() => setView("grid")}
-                  className={`p-3 rounded-xl transition-all duration-300 ${
-                    view === "grid"
-                      ? "bg-gradient-to-r from-[#0f4c4c] to-[#1a6b6b] text-white shadow-lg"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-[#0f4c4c]"
-                  }`}
-                >
-                  <Grid size={20} />
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  className={`p-3 rounded-xl transition-all duration-300 ${
-                    view === "list"
-                      ? "bg-gradient-to-r from-[#0f4c4c] to-[#1a6b6b] text-white shadow-lg"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-[#0f4c4c]"
-                  }`}
-                >
-                  <List size={20} />
-                </button>
-              </div>
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="खबरें खोजें..."
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg"
+            />
           </div>
         </div>
 
-        {/* Results count */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="text-lg text-gray-600">
-            Found{" "}
-            <span className="font-bold text-[#0f4c4c]">
+        {/* Live Indicator */}
+        <div className="flex items-center justify-center mb-6">
+          <div className="flex items-center gap-2 bg-red-50 px-4 py-2 rounded-full border border-red-200">
+            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+            <span className="text-sm font-medium text-red-700">लाइव अपडेट</span>
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <CategoryFilter
+          categories={categories}
+          activeCategory={activeCategory}
+          onSelect={setActiveCategory}
+        />
+
+        {/* Results Info */}
+        <div className="mb-6">
+          <p className="text-gray-600">
+            <span className="font-semibold text-red-600">
               {filteredArticles.length}
             </span>{" "}
-            articles
+            लेख मिले
             {query && (
               <span>
                 {" "}
-                for &quot;<span className="font-semibold">{query}</span>&quot;
+                "<span className="font-medium">{query}</span>" के लिए
               </span>
             )}
-            {activeTag !== "All" && (
+            {activeCategory !== "सभी" && (
               <span>
                 {" "}
-                in <span className="font-semibold">{activeTag}</span>
+                श्रेणी: <span className="font-medium">{activeCategory}</span>
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-              <span>Featured</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full" />
-              <span>Trending</span>
-            </div>
-          </div>
+          </p>
         </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Articles */}
-          <div className="xl:col-span-3">
-            {visibleArticles.length === 0 ? (
-              <div className="bg-white rounded-3xl p-16 text-center border border-gray-200 shadow-xl">
-                <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Search size={40} className="text-gray-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  No articles found
-                </h3>
-                <p className="text-gray-600 max-w-md mx-auto text-lg mb-8">
-                  {query
-                    ? `No results found for "${query}". Try different keywords or filters.`
-                    : "Try adjusting your search criteria or browse all categories."}
-                </p>
-                <button
-                  onClick={() => {
-                    setQuery("");
-                    setActiveTag("All");
-                  }}
-                  className="px-8 py-4 bg-gradient-to-r from-[#0f4c4c] to-[#1a6b6b] text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  Browse All Articles
+        {/* Featured Article */}
+        {featuredArticle && <FeaturedArticle article={featuredArticle} />}
+
+        {/* Articles Grid */}
+        {filteredArticles.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search size={24} className="text-gray-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              कोई लेख नहीं मिला
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {query
+                ? `"${query}" के लिए कोई परिणाम नहीं मिले। कृपया अलग कीवर्ड आज़माएं।`
+                : "कृपया अलग श्रेणी चुनें।"}
+            </p>
+            <button
+              onClick={() => {
+                setQuery("");
+                setActiveCategory("सभी");
+              }}
+              className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium"
+            >
+              सभी लेख देखें
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Regular Articles */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {regularArticles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+
+            {/* Load More */}
+            {filteredArticles.length > 6 && (
+              <div className="text-center mt-12">
+                <button className="bg-white text-red-600 px-8 py-3 rounded-lg border border-red-600 hover:bg-red-50 transition-colors duration-200 font-medium">
+                  और लेख देखें
                 </button>
               </div>
-            ) : (
-              <>
-                {/* Featured */}
-                {featuredArticle && (
-                  <div className="mb-12">
-                    <FeaturedArticle article={featuredArticle} />
-                  </div>
-                )}
-
-                {/* Articles grid/list */}
-                <div className={gridClass}>
-                  {nonFeaturedArticles.map((article) => (
-                    <div
-                      key={article.id}
-                      className="group bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500"
-                    >
-                      <ArticleCard article={article} />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Load more */}
-                {filteredArticles.length > pageSize && (
-                  <div className="mt-16 flex justify-center">
-                    <button
-                      onClick={handleLoadMore}
-                      disabled={isLoading}
-                      className="px-12 py-6 bg-gradient-to-r from-[#0f4c4c] to-[#1a6b6b] text-white font-bold rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none disabled:hover:shadow-none flex items-center gap-4 text-lg"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader size={24} className="animate-spin" />
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          Load More Articles n{" "}
-                          <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-                            {Math.max(0, filteredArticles.length - pageSize)}
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </>
             )}
-          </div>
+          </>
+        )}
 
-          {/* Sidebar */}
-          <aside className="space-y-8">
-            <TrendingTags
-              tags={tags.slice(1, 8)}
-              activeTag={activeTag}
-              onSelect={setActiveTag}
-            />
-            <SavedArticles />
-            <Newsletter />
-          </aside>
-        </div>
-      </div>
+        {/* Newsletter */}
+        <Newsletter />
+      </main>
+
+      {/* Simple Footer */}
     </div>
   );
 }
 
-/* ---------- Route default export (fix) ---------- */
-
-// Keep the client behavior for this page — default-export a Page component that renders the NewsFeed.
 export default function Page() {
-  return <NewsFeed />;
+  return <HindiNewsPage />;
 }
