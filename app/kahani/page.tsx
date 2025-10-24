@@ -10,9 +10,7 @@ import {
   Bookmark,
   ChevronLeft,
   ChevronRight,
-  Home,
   Search,
-  Filter,
 } from "lucide-react";
 
 type Story = {
@@ -40,7 +38,7 @@ const SAMPLE_STORIES: Story[] = [
       "घड़े से एक देवता प्रकट हुए और बोले, 'तुम्हें इस घड़े से जो भी चाहिए मिल सकता है, लेकिन याद रहे, लालच बुरी बला है।'",
       "किसान ने पहले तो थोड़ा सा अनाज माँगा। घड़े से अनाज भर गया। फिर उसने सोना माँगा। घड़ा सोने से भर गया।",
       "धीरे-धीरे किसान लालची होता गया। उसने और भी सोना माँगा। अचानक घड़ा गायब हो गया और सारा सोना भी गायब हो गया।",
-      "किसान को समझ आया कि लालच का कोई फल नहीं होता। वह वापस मेहनत से खेती करने लगा और खुशहाल जीवन जीने लगा।"
+      "किसान को समझ आया कि लालच का कोई फल नहीं होता। वह वापस मेहनत से खेती करने लगा और खुशहाल जीवन जीने लगा।",
     ],
     category: "नैतिक कहानी",
     readTime: 4,
@@ -49,7 +47,7 @@ const SAMPLE_STORIES: Story[] = [
     moral: "लालच बुरी बला है",
     ageGroup: "सभी उम्र",
     featured: true,
-    tags: ["नैतिक", "लालच", "किसान"]
+    tags: ["नैतिक", "लालच", "किसान"],
   },
   {
     id: 2,
@@ -60,7 +58,7 @@ const SAMPLE_STORIES: Story[] = [
       "केले बहुत ऊँचे थे और कोई भी बंदर उन तक नहीं पहुँच पा रहा था। सभी बंदर हैरान थे।",
       "तभी एक बूढ़ा बंदर बोला, 'क्यों न हम सब मिलकर एक पिरामिड बनाएं?'",
       "सभी बंदरों ने मिलकर एक दूसरे के कंधों पर चढ़कर पिरामिड बनाया और केले तोड़कर खाए।",
-      "इस कहानी से हमें सीख मिलती है कि एकता में बहुत ताकत होती है।"
+      "इस कहानी से हमें सीख मिलती है कि एकता में बहुत ताकत होती है।",
     ],
     category: "जानवरों की कहानी",
     readTime: 3,
@@ -69,7 +67,7 @@ const SAMPLE_STORIES: Story[] = [
     moral: "एकता में बल है",
     ageGroup: "बच्चे",
     featured: false,
-    tags: ["एकता", "बंदर", "जंगल"]
+    tags: ["एकता", "बंदर", "जंगल"],
   },
   {
     id: 3,
@@ -80,7 +78,7 @@ const SAMPLE_STORIES: Story[] = [
       "एक दिन राजू बीमार पड़ गया। सोहन ने उसकी देखभाल की और डॉक्टर को बुलाया।",
       "राजू के ठीक होने पर सोहन ने उसे अपनी बचत से उपहार दिया। राजू की आँखों में आँसू आ गए।",
       "उसने कहा, 'सच्चा दोस्त वही होता है जो मुसीबत के समय काम आए।'",
-      "दोनों की दोस्ती और मजबूत हो गई और वे आजीवन दोस्त बने रहे।"
+      "दोनों की दोस्ती और मजबूत हो गई और वे आजीवन दोस्त बने रहे।",
     ],
     category: "मित्रता",
     readTime: 5,
@@ -89,7 +87,7 @@ const SAMPLE_STORIES: Story[] = [
     moral: "सच्चा मित्र ही संकट में काम आता है",
     ageGroup: "किशोर",
     featured: true,
-    tags: ["मित्रता", "सच्चाई", "बचपन"]
+    tags: ["मित्रता", "सच्चाई", "बचपन"],
   },
   {
     id: 4,
@@ -100,7 +98,7 @@ const SAMPLE_STORIES: Story[] = [
       "रामू सुबह जल्दी उठकर खेत में काम करता और शाम को पढ़ाई करता।",
       "उसके माता-पिता ने उसे पढ़ने के लिए शहर भेजा। रामू ने मेहनत से पढ़ाई की और इंजीनियर बन गया।",
       "वह अपने माता-पिता को गाँव से शहर ले आया और उनकी अच्छे से देखभाल की।",
-      "मेहनत और लगन से इंसान कुछ भी हासिल कर सकता है।"
+      "मेहनत और लगन से इंसान कुछ भी हासिल कर सकता है।",
     ],
     category: "प्रेरणादायक",
     readTime: 4,
@@ -109,7 +107,7 @@ const SAMPLE_STORIES: Story[] = [
     moral: "मेहनत का फल मीठा होता है",
     ageGroup: "सभी उम्र",
     featured: false,
-    tags: ["मेहनत", "सफलता", "प्रेरणा"]
+    tags: ["मेहनत", "सफलता", "प्रेरणा"],
   },
   {
     id: 5,
@@ -120,7 +118,7 @@ const SAMPLE_STORIES: Story[] = [
       "एक दिन एक साधु ने उसे समझाया कि अहंकार मनुष्य का सबसे बड़ा शत्रु है।",
       "राजा ने साधु की बात नहीं मानी। कुछ दिनों बाद राजा का राज्य दुश्मनों ने घेर लिया।",
       "कोई भी राजा की मदद के लिए नहीं आया क्योंकि उसने सबके साथ बुरा व्यवहार किया था।",
-      "राजा को अपनी गलती का एहसास हुआ और उसने सबसे माफी माँगी। तब सबने मिलकर दुश्मनों को हराया।"
+      "राजा को अपनी गलती का एहसास हुआ और उसने सबसे माफी माँगी। तब सबने मिलकर दुश्मनों को हराया।",
     ],
     category: "ऐतिहासिक",
     readTime: 6,
@@ -129,11 +127,17 @@ const SAMPLE_STORIES: Story[] = [
     moral: "अहंकार मनुष्य का सबसे बड़ा शत्रु है",
     ageGroup: "वयस्क",
     featured: false,
-    tags: ["अहंकार", "राजा", "सीख"]
-  }
+    tags: ["अहंकार", "राजा", "सीख"],
+  },
 ];
 
-const StoryCard = ({ story, onRead }: { story: Story; onRead: (story: Story) => void }) => {
+const StoryCard = ({
+  story,
+  onRead,
+}: {
+  story: Story;
+  onRead: (story: Story) => void;
+}) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -148,7 +152,7 @@ const StoryCard = ({ story, onRead }: { story: Story; onRead: (story: Story) => 
   };
 
   return (
-    <div 
+    <div
       onClick={() => onRead(story)}
       className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
     >
@@ -215,7 +219,13 @@ const StoryCard = ({ story, onRead }: { story: Story; onRead: (story: Story) => 
   );
 };
 
-const StoryReader = ({ story, onBack }: { story: Story; onBack: () => void }) => {
+const StoryReader = ({
+  story,
+  onBack,
+}: {
+  story: Story;
+  onBack: () => void;
+}) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -260,7 +270,10 @@ const StoryReader = ({ story, onBack }: { story: Story; onBack: () => void }) =>
               onClick={() => setIsBookmarked(!isBookmarked)}
               className={isBookmarked ? "text-blue-600" : "text-gray-600"}
             >
-              <Bookmark size={20} fill={isBookmarked ? "currentColor" : "none"} />
+              <Bookmark
+                size={20}
+                fill={isBookmarked ? "currentColor" : "none"}
+              />
             </button>
           </div>
         </div>
@@ -271,7 +284,9 @@ const StoryReader = ({ story, onBack }: { story: Story; onBack: () => void }) =>
             <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4 inline-block">
               {story.category}
             </span>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">{story.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              {story.title}
+            </h1>
             <div className="flex items-center justify-center gap-6 text-gray-600 mb-2">
               <div className="flex items-center gap-1">
                 <User size={16} />
@@ -359,7 +374,10 @@ const SearchAndFilter = ({
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
 }) => {
-  const categories = ["सभी", ...Array.from(new Set(SAMPLE_STORIES.map(story => story.category)))];
+  const categories = [
+    "सभी",
+    ...Array.from(new Set(SAMPLE_STORIES.map((story) => story.category))),
+  ];
 
   return (
     <div className="space-y-4 mb-8">
@@ -402,18 +420,27 @@ export default function HindiKahani() {
 
   const filteredStories = useMemo(() => {
     return SAMPLE_STORIES.filter((story) => {
-      const matchesSearch = story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          story.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          story.content.some(para => para.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const matchesCategory = selectedCategory === "सभी" || story.category === selectedCategory;
-      
+      const matchesSearch =
+        story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        story.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        story.content.some((para) =>
+          para.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+      const matchesCategory =
+        selectedCategory === "सभी" || story.category === selectedCategory;
+
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory]);
 
   if (selectedStory) {
-    return <StoryReader story={selectedStory} onBack={() => setSelectedStory(null)} />;
+    return (
+      <StoryReader
+        story={selectedStory}
+        onBack={() => setSelectedStory(null)}
+      />
+    );
   }
 
   return (
@@ -427,8 +454,12 @@ export default function HindiKahani() {
                 <BookOpen size={24} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">हिंदी कहानियाँ</h1>
-                <p className="text-gray-600 text-sm">नैतिक और प्रेरणादायक कहानियों का संग्रह</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  हिंदी कहानियाँ
+                </h1>
+                <p className="text-gray-600 text-sm">
+                  नैतिक और प्रेरणादायक कहानियों का संग्रह
+                </p>
               </div>
             </div>
             <div className="text-sm text-gray-500">
@@ -455,8 +486,12 @@ export default function HindiKahani() {
               विशेष कहानियाँ
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {SAMPLE_STORIES.filter(story => story.featured).map((story) => (
-                <StoryCard key={story.id} story={story} onRead={setSelectedStory} />
+              {SAMPLE_STORIES.filter((story) => story.featured).map((story) => (
+                <StoryCard
+                  key={story.id}
+                  story={story}
+                  onRead={setSelectedStory}
+                />
               ))}
             </div>
           </div>
@@ -465,21 +500,31 @@ export default function HindiKahani() {
         {/* All Stories */}
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            {selectedCategory === "सभी" ? "सभी कहानियाँ" : `${selectedCategory} कहानियाँ`}
+            {selectedCategory === "सभी"
+              ? "सभी कहानियाँ"
+              : `${selectedCategory} कहानियाँ`}
           </h2>
-          
+
           {filteredStories.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">कोई कहानी नहीं मिली</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                कोई कहानी नहीं मिली
+              </h3>
               <p className="text-gray-600 text-sm">
-                {searchQuery ? `"${searchQuery}" के लिए कोई परिणाम नहीं मिले` : "कृपया अलग श्रेणी चुनें"}
+                {searchQuery
+                  ? `"${searchQuery}" के लिए कोई परिणाम नहीं मिले`
+                  : "कृपया अलग श्रेणी चुनें"}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredStories.map((story) => (
-                <StoryCard key={story.id} story={story} onRead={setSelectedStory} />
+                <StoryCard
+                  key={story.id}
+                  story={story}
+                  onRead={setSelectedStory}
+                />
               ))}
             </div>
           )}
