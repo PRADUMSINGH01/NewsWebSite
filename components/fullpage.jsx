@@ -1,6 +1,8 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AdIframe from "@/components/AdIframe";
+import ProfessionalLoader from "./Loading";
+import { fetchCollection } from "./server/fetchnews";
 import BackButton from "@/components/BackButton";
 /* ------------------- Icons ------------------- */
 const UserIcon = ({ className = "w-5 h-5" }) => (
@@ -66,6 +68,49 @@ const HINDI_MONTHS = [
   "नवंबर",
   "दिसंबर",
 ];
+
+const ArticleCard = ({ article }) => (
+  <article className="group rounded-lg overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+    <div className="relative h-48 overflow-hidden">
+      <img
+        src={article.img}
+        alt={article.title}
+        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+      />
+      <span className="absolute top-3 left-3 bg-[#0f4c4c] text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wide">
+        {article.tag}
+      </span>
+    </div>
+    <div className="p-5">
+      <h3 className="font-bold text-lg leading-snug line-clamp-2 text-gray-900 group-hover:text-[#0f4c4c] font-['Noto_Sans_Devanagari'] transition-colors">
+        {article.title}
+      </h3>
+      <p className="mt-3 text-sm text-gray-600 line-clamp-2 leading-relaxed">
+        {article.excerpt}
+      </p>
+      <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <img
+            src={article.avatar}
+            alt={article.author}
+            className="w-8 h-8 rounded-full"
+          />
+          <div>
+            <div className="font-medium">{article.author}</div>
+            <div className="text-xs">{article.time}</div>
+          </div>
+        </div>
+        <a
+          href={`Read-full-news/${article.slug}`}
+          className="text-sm font-semibold text-[#0f4c4c] hover:text-[#0a7f7f] transition-colors"
+        >
+          और पढ़ें →
+        </a>
+      </div>
+    </div>
+  </article>
+);
 
 /**
  * Normalize incoming "post" shape.
@@ -275,9 +320,13 @@ function renderContentArray(contentArray) {
  * or
  * <SimpleNewsPost post={postData} />
  */
+
+function rand0to10() {
+  return Math.floor(Math.random() * 11); // 0..10
+}
+
 export default function SimpleNewsPost({ post: rawPost = {} }) {
   const post = normalizePost(rawPost);
-
   const dateLabel = formatDateLabel(post);
   const hasImage = Boolean(post?.img);
   const related = Array.isArray(post?.related) ? post.related : [];
@@ -290,7 +339,39 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
   const views = typeof post?.views === "number" ? post.views : 0;
   const likes = typeof post?.likes === "number" ? post.likes : 0;
   const published = Boolean(post?.published);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  const renmin = rand0to10();
+  const renmax = rand0to10();
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const items = await fetchCollection("news"); // <-- await the promise
+        if (!mounted) return;
+        setData(items);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err);
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) return <ProfessionalLoader />;
+  if (error) return <div>Error: {error.message || String(error)}</div>;
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 antialiased">
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -311,7 +392,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
         params={{}}
         className="mx-auto my-4"
       /> */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex md:items-start">
             <div className="md:flex-1">
@@ -500,6 +581,17 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                 size="lg"
               />
             </div>
+          </div>
+        </section>
+
+        <section className="my-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
+            खबरें
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {data.slice(renmin, renmax).map((a) => (
+              <ArticleCard key={a.id} article={a} />
+            ))}
           </div>
         </section>
       </main>
