@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import AdIframe from "@/components/AdIframe";
-
+import BackButton from "@/components/BackButton";
 /* ------------------- Icons ------------------- */
 const UserIcon = ({ className = "w-5 h-5" }) => (
   <svg
@@ -303,14 +303,14 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap"
         rel="stylesheet"
       />
-      <AdIframe
+      {/* <AdIframe
         keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
         width={728}
         height={90}
         format="iframe"
         params={{}}
         className="mx-auto my-4"
-      />
+      /> */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex md:items-start">
@@ -323,14 +323,14 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <AdIframe
+              {/* <AdIframe
                 keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
                 width={728}
                 height={90}
                 format="iframe"
                 params={{}}
                 className="mx-auto my-4"
-              />
+              /> */}
               <div className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="inline-flex items-center bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded-full">
@@ -400,14 +400,14 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                     post?.content || post?.content?.blocks || []
                   )}
                 </div>
-                <AdIframe
+                {/* <AdIframe
                   keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
                   width={728}
                   height={90}
                   format="iframe"
                   params={{}}
                   className="mx-auto my-4"
-                />
+                /> */}
                 {/* share + tags */}
                 <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex flex-wrap gap-2">
@@ -487,13 +487,18 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
             />
             <div>
               <h4 className="font-bold">{author}</h4>
-
               <a
                 href={post?.authorLink || "#"}
                 className="text-sm font-semibold text-red-600 mt-2 inline-block"
               >
                 {author ? `${author} के और लेख पढ़ें →` : "और पढ़ें →"}
               </a>
+              <BackButton
+                isFixed={true}
+                showLabel={true}
+                variant="light"
+                size="lg"
+              />
             </div>
           </div>
         </section>

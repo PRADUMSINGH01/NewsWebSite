@@ -182,7 +182,7 @@ const Header = ({ setShowSearch }) => {
         </div>
       </div>
 
-      <AdIframe
+      {/* <AdIframe
         keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
         width={728}
         height={90}
@@ -190,7 +190,7 @@ const Header = ({ setShowSearch }) => {
         // optional params object
         params={{}}
         className="mx-auto my-4"
-      />
+      /> */}
 
       <header className="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/80 bg-white/95 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
@@ -221,7 +221,7 @@ const Header = ({ setShowSearch }) => {
                 { t: "कहानी", url: "kahani" },
 
                 { t: "रोचक तथ्य", url: "/news/रोचक-तथ्य" },
-                { t: "फ़िल्मी दुनिया", url: "/news/फ़िल्मी-दुनिया" },
+                { t: "फ़िल्मी दुनिया", url: "/news/फ़िल्मी दुनिया" },
 
                 { t: "फोटो गैलरी", url: "photo-gallery" },
               ].map((c, i) => (
@@ -517,36 +517,8 @@ export default function App() {
           </div>
         </section>
         {/* <HighPerfAd /> */}
-        <div className="flex justify-center my-6">
-          {/* Reserve space to avoid layout shift — adjust size to match the ad */}
-          <div
-            id="highperf-ad-238e8b8d43de803a5bf28fe2c54f0e30"
-            className="w-[160px] h-[300px] overflow-hidden"
-            aria-hidden="true"
-          />
-
-          {/* Inline config must be present BEFORE the provider script */}
-          <Script id="highperf-ad-config" strategy="afterInteractive">
-            {`
-          atOptions = {
-            'key' : '238e8b8d43de803a5bf28fe2c54f0e30',
-            'format' : 'iframe',
-            'height' : 300,
-            'width' : 160,
-            'params' : {}
-          };
-        `}
-          </Script>
-
-          {/* External provider script */}
-          <Script
-            id="highperf-ad-invoke"
-            src="https://www.highperformanceformat.com/238e8b8d43de803a5bf28fe2c54f0e30/invoke.js"
-            strategy="afterInteractive"
-            async
-          />
-        </div>
-        <AdBanner />
+        <div className="flex justify-center my-6"></div>
+        {/* <AdBanner /> */}
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
@@ -563,7 +535,7 @@ export default function App() {
         {/* <SimpleAd /> */}
         <Hero lead={lead} trending={trending} />
         <section className="my-12">
-          <EffectiveGateAd />
+          {/* <EffectiveGateAd /> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.slice(18, 22).map((a) => (
@@ -571,7 +543,7 @@ export default function App() {
             ))}
           </div>
         </section>
-        <EffectiveGateAd />
+        {/* <EffectiveGateAd /> */}
       </main>
 
       <MobileNav />

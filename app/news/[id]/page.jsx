@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import ProfessionalLoader from "@/components/Loading";
+import BackButton from "@/components/BackButton";
 import {
   Search,
   Clock,
@@ -335,6 +336,7 @@ export default function CategoryNewsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
+      <BackButton className="sm:left-6 left-2 shadow-2xl" />
       <header className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
