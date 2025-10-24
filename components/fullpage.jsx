@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import AdIframe from "@/components/AdIframe";
+
 /* ------------------- Icons ------------------- */
 const UserIcon = ({ className = "w-5 h-5" }) => (
   <svg
@@ -188,40 +189,25 @@ function renderContentArray(contentArray) {
 
     // object blocks
     if (typeof block === "object" && block !== null) {
+      // subheading - FIXED: This condition should come first
+      if (block.type === "subheading") {
+        return (
+          <h3
+            key={idx}
+            className="text-xl font-bold mb-3 mt-6 text-gray-900"
+            style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
+          >
+            {block.text || block.content || block.headingText}
+          </h3>
+        );
+      }
+
       // common fallback properties
       if (block.text || block.paragraph) {
         return (
           <p key={idx} className="mb-4 text-gray-800 leading-relaxed">
             {block.text || block.paragraph}
           </p>
-        );
-      }
-      <AdIframe
-        keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
-        width={728}
-        height={90}
-        format="iframe"
-        // optional params object
-        params={{}}
-        className="mx-auto my-4"
-      />;
-      // headings
-      if (block.type === "h1" || block.heading === "h1") {
-        return (
-          <h2
-            key={idx}
-            className="text-2xl font-bold mb-3"
-            style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
-          >
-            {block.content || block.text || block.headingText}
-          </h2>
-        );
-      }
-      if (block.type === "h2" || block.heading === "h2") {
-        return (
-          <h3 key={idx} className="text-xl font-semibold mb-3">
-            {block.content || block.text || block.headingText}
-          </h3>
         );
       }
 
@@ -322,7 +308,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
         width={728}
         height={90}
         format="iframe"
-        // optional params object
         params={{}}
         className="mx-auto my-4"
       />
@@ -343,7 +328,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                 width={728}
                 height={90}
                 format="iframe"
-                // optional params object
                 params={{}}
                 className="mx-auto my-4"
               />
@@ -421,7 +405,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   width={728}
                   height={90}
                   format="iframe"
-                  // optional params object
                   params={{}}
                   className="mx-auto my-4"
                 />
@@ -504,10 +487,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
             />
             <div>
               <h4 className="font-bold">{author}</h4>
-              <p className="text-sm text-gray-600">
-                {author ? `लेखक — ${author}` : "लेखक जानकारी उपलब्ध नहीं"}{" "}
-                {published ? " · प्रकाशित" : " · ड्राफ्ट"}
-              </p>
+
               <a
                 href={post?.authorLink || "#"}
                 className="text-sm font-semibold text-red-600 mt-2 inline-block"

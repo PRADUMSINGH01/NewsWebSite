@@ -221,15 +221,15 @@ const Header = ({ setShowSearch }) => {
               aria-label="मुख्य नेविगेशन"
             >
               {[
-                { t: "समाचार", url: "news" },
+                { t: "समाचार", url: "/news/सभी" },
 
-                { t: "टेक", url: "tech" },
-                { t: "खेल", url: "sports" },
+                { t: "टेक", url: "/news/टेक" },
+                { t: "खेल", url: "/news/खेल" },
                 { t: "कविता", url: "kavita" },
                 { t: "कहानी", url: "kahani" },
 
-                { t: "रोचक तथ्य", url: "facts" },
-                { t: "फ़िल्मी दुनिया", url: "film" },
+                { t: "रोचक तथ्य", url: "/news/रोचक-तथ्य" },
+                { t: "फ़िल्मी दुनिया", url: "/news/फ़िल्मी-दुनिया" },
 
                 { t: "फोटो गैलरी", url: "photo-gallery" },
               ].map((c, i) => (
