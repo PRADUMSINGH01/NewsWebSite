@@ -1,4 +1,5 @@
 "use client";
+import Script from "next/script";
 
 import React, { useState, useEffect } from "react";
 import { fetchCollection } from "@/components/server/fetchnews";
@@ -10,7 +11,6 @@ import Image from "next/image";
 import AdBanner from "@/components/AdBanner";
 import SimpleAd from "@/components/SimpleAd";
 import EffectiveGateAd from "@/components/EffectiveGateAd";
-import HighPerfAd from "@/components/HighPerfAd";
 import AdIframe from "@/components/AdIframe";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
@@ -191,15 +191,7 @@ const Header = ({ setShowSearch }) => {
         params={{}}
         className="mx-auto my-4"
       />
-      <AdIframe
-        keyValue="ea47bb194fc68c42baa2c7c829e15e3f"
-        width={728}
-        height={90}
-        format="iframe"
-        // optional params object
-        params={{}}
-        className="mx-auto my-4"
-      />
+
       <header className="sticky top-0 z-40 backdrop-blur-md border-b border-gray-200/80 bg-white/95 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
           <div className="flex items-center gap-6">
@@ -469,6 +461,35 @@ export default function App() {
   if (loading) return <ProfessionalLoader />;
   if (error) return <div>Error: {error.message || String(error)}</div>;
 
+  // filter ----------------------------------
+  function normalizeTag(tag) {
+    if (!tag) return "";
+    return tag.toString().trim().toLowerCase();
+  }
+
+  const TARGET = "फ़िल्मी दुनिया";
+
+  const educationArticles = data.filter(
+    (article) => normalizeTag(article.tag) === normalizeTag(TARGET)
+  );
+  const sport = "खेल";
+  const sport_result = data.filter(
+    (artical) => normalizeTag(artical.tag) === normalizeTag(sport)
+  );
+
+  // If you want a fallback to show something when no education articles:
+  const lead = educationArticles[0] ?? data[0] ?? null;
+  const trending =
+    educationArticles.length > 1
+      ? educationArticles.slice(1, 4)
+      : data.slice(1, 4);
+
+  // pass to खेल
+
+  const sport_lead = sport_result[0] ?? data[0] ?? null;
+  const tranding =
+    sport_result.length > 1 ? sport_result.slice(0, 4) : data.slice(1, 4);
+
   return (
     <div className="min-h-screen bg-white text-gray-900 font-['Roboto','Noto_Sans_Devanagari']">
       <Header setShowSearch={setShowSearch} />
@@ -490,19 +511,48 @@ export default function App() {
             ताज़ा खबरें
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.slice(6, 9).map((a) => (
+            {data.slice(6, 10).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
         </section>
-        <HighPerfAd />
+        {/* <HighPerfAd /> */}
+        <div className="flex justify-center my-6">
+          {/* Reserve space to avoid layout shift — adjust size to match the ad */}
+          <div
+            id="highperf-ad-238e8b8d43de803a5bf28fe2c54f0e30"
+            className="w-[160px] h-[300px] overflow-hidden"
+            aria-hidden="true"
+          />
+
+          {/* Inline config must be present BEFORE the provider script */}
+          <Script id="highperf-ad-config" strategy="afterInteractive">
+            {`
+          atOptions = {
+            'key' : '238e8b8d43de803a5bf28fe2c54f0e30',
+            'format' : 'iframe',
+            'height' : 300,
+            'width' : 160,
+            'params' : {}
+          };
+        `}
+          </Script>
+
+          {/* External provider script */}
+          <Script
+            id="highperf-ad-invoke"
+            src="https://www.highperformanceformat.com/238e8b8d43de803a5bf28fe2c54f0e30/invoke.js"
+            strategy="afterInteractive"
+            async
+          />
+        </div>
         <AdBanner />
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.slice(8, 12).map((a) => (
+            {tranding.map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
@@ -511,7 +561,7 @@ export default function App() {
           मनोरंजन ताज़ा खबरें
         </h2>
         {/* <SimpleAd /> */}
-        <Hero lead={data[0]} trending={data.slice(1, 3)} />
+        <Hero lead={lead} trending={trending} />
         <section className="my-12">
           <EffectiveGateAd />
 

@@ -1,6 +1,9 @@
+"use client";
 // app/news/[id]/page.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
+import ProfessionalLoader from "@/components/Loading";
 import {
   Search,
   Clock,
@@ -13,32 +16,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { fetchCollection } from "@/components/server/fetchnews";
 
 const PAGE_SIZE = 6;
 const PAGINATION_RANGE = 3;
 
-const SAMPLE_ARTICLES = [
-  /* (use your same SAMPLE_ARTICLES array) */
-  {
-    id: 1,
-    tag: "राजनीति",
-    title: "संसद का मानसून सत्र: नए विधेयकों पर होगी गरमागरम बहस",
-    excerpt:
-      "सरकार इस सत्र में कई महत्वपूर्ण विधेयक पेश करने की तैयारी में है, विपक्ष ने भी अपनी रणनीति बना ली है।",
-    author: "रवि प्रकाश",
-    time: "2 घंटे पहले",
-    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    img: "https://images.unsplash.com/photo-1602339257297-2519247c9e9d?auto=format&fit=crop&w=600&h=400&q=80",
-    avatar: "https://i.pravatar.cc/96?img=1",
-    featured: true,
-    readMinutes: 4,
-    views: 1250,
-    trending: true,
-  },
-  // ... rest of your sample articles (2..8)
-];
-
-/* ---------- Presentational pieces (pure functions, server-safe) ---------- */
+/* ---------- Presentational pieces (pure functions, client-safe) ---------- */
 
 const ArticleCard = ({ article }) => {
   return (
@@ -102,6 +85,7 @@ const ArticleCard = ({ article }) => {
 };
 
 const FeaturedArticle = ({ article }) => {
+  if (!article) return null;
   return (
     <article className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
       <div className="grid md:grid-cols-2 gap-6">
@@ -161,9 +145,8 @@ const FeaturedArticle = ({ article }) => {
   );
 };
 
-/* -------- Pagination helper (server-side links) -------- */
+/* -------- Pagination helper (client-side links) -------- */
 const buildUrl = ({ category, q, page }) => {
-  // category can be "सभी" or a real category string
   const categoryPath =
     category && category !== "सभी" ? encodeURIComponent(category) : "सभी";
   const params = new URLSearchParams();
@@ -261,30 +244,62 @@ const PaginationBlock = ({ currentPage, totalPages, category, q }) => {
   );
 };
 
-/* ------------------- Main server page ------------------- */
-/**
- * Note: this is a Server Component (no "use client" at top).
- * Next will pass `params` and `searchParams`.
- */
-export default function CategoryNewsPage({ params, searchParams }) {
-  // Category from dynamic route: params.id
-  const categoryId = params?.id;
+/* ------------------- Main client page ------------------- */
+export default function CategoryNewsPage() {
+  // client hooks for route + query
+  const params = useParams(); // returns { id: '...' } in client components
+  const searchParams = useSearchParams(); // URLSearchParams-like
+  const router = useRouter();
+
+  const [SAMPLE_ARTICLES, setSAMPLE_ARTICLES] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // load data on client
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const items = await fetchCollection("news");
+        if (!mounted) return;
+        setSAMPLE_ARTICLES(items ?? []);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err);
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // category from route params
+  const categoryId = params?.id ?? null;
   const currentCategory = categoryId ? decodeURIComponent(categoryId) : "सभी";
 
-  // search & page via URL querystrings
-  const q = (searchParams?.q ?? "").trim();
-  const pageParam = parseInt(searchParams?.page ?? "1", 10);
+  // query params via useSearchParams()
+  const q = (searchParams?.get("q") ?? "").trim();
+  const pageParamRaw = searchParams?.get("page") ?? "1";
+  const pageParam = parseInt(pageParamRaw, 10);
   const currentPage = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
 
-  // categories list
+  // categories list (depending on loaded articles)
   const categories = useMemo(() => {
-    const all = SAMPLE_ARTICLES.map((a) => a.tag);
+    const all = SAMPLE_ARTICLES.map((a) => a.tag).filter(Boolean);
     return ["सभी", ...Array.from(new Set(all))];
-  }, []);
+  }, [SAMPLE_ARTICLES]);
 
   // filter articles by category and search
   const filtered = useMemo(() => {
-    let arr = SAMPLE_ARTICLES;
+    let arr = SAMPLE_ARTICLES || [];
     if (categoryId && currentCategory !== "सभी") {
       arr = arr.filter((a) => a.tag === currentCategory);
     }
@@ -292,14 +307,14 @@ export default function CategoryNewsPage({ params, searchParams }) {
       const lower = q.toLowerCase();
       arr = arr.filter(
         (a) =>
-          a.title.toLowerCase().includes(lower) ||
-          a.excerpt.toLowerCase().includes(lower) ||
-          a.author.toLowerCase().includes(lower) ||
-          a.tag.toLowerCase().includes(lower)
+          (a.title || "").toLowerCase().includes(lower) ||
+          (a.excerpt || "").toLowerCase().includes(lower) ||
+          (a.author || "").toLowerCase().includes(lower) ||
+          (a.tag || "").toLowerCase().includes(lower)
       );
     }
     return arr;
-  }, [categoryId, currentCategory, q]);
+  }, [SAMPLE_ARTICLES, categoryId, currentCategory, q]);
 
   const featuredArticle = filtered.find((a) => a.featured);
   const regularArticles = filtered.filter((a) => !a.featured);
@@ -312,6 +327,10 @@ export default function CategoryNewsPage({ params, searchParams }) {
   const displayedCount =
     (featuredArticle && currentPage === 1 ? 1 : 0) +
     paginatedRegularArticles.length;
+
+  // loading / error states
+  if (loading) return <ProfessionalLoader />;
+  if (error) return <div>Error: {error.message || String(error)}</div>;
 
   return (
     <div className="min-h-screen bg-white">
@@ -347,8 +366,24 @@ export default function CategoryNewsPage({ params, searchParams }) {
           </nav>
         )}
 
-        {/* Search form (server handled) */}
-        <form method="get" className="relative mb-8">
+        {/* Search form (client handled) */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+            const newQ = formData.get("q") ?? "";
+            // navigate keeping category path
+            router.push(
+              buildUrl({
+                category: currentCategory,
+                q: String(newQ).trim(),
+                page: 1,
+              })
+            );
+          }}
+          className="relative mb-8"
+        >
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             name="q"
@@ -437,7 +472,14 @@ export default function CategoryNewsPage({ params, searchParams }) {
           <p className="text-gray-600 text-sm mb-4">
             दिन की शीर्ष कहानियां अपने इनबॉक्स में प्राप्त करें।
           </p>
-          <form method="post" action="#" className="flex gap-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // handle subscribe action client-side or call an API
+              alert("धन्यवाद! आप सब्सक्राइब हो चुके हैं।");
+            }}
+            className="flex gap-2"
+          >
             <input
               type="email"
               name="email"
