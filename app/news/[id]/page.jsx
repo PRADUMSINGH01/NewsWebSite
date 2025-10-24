@@ -39,7 +39,7 @@ const ArticleCard = ({ article }) => {
           </span>
         </div>
         {article.trending && (
-          <div className="absolute top-3 right-3 bg-red-500 text-white p-1 rounded">
+          <div className="absolute top-3 right-3 bg-[#0f4c4c] text-white p-1 rounded">
             <TrendingUp size={14} />
           </div>
         )}
@@ -75,8 +75,8 @@ const ArticleCard = ({ article }) => {
         </div>
 
         <Link
-          href={`/article/${article.id}`}
-          className="w-full mt-3 block bg-blue-600 text-white py-2 rounded text-sm font-medium text-center hover:bg-blue-700 transition-colors"
+          href={`/Read-full-news/${article.slug}`}
+          className="w-full mt-3 block bg-[#0f4c4c] text-white py-2 rounded text-sm font-medium text-center hover:opacity-95 transition-all"
         >
           पूरा पढ़ें
         </Link>
@@ -97,15 +97,15 @@ const FeaturedArticle = ({ article }) => {
             className="w-full h-full object-cover"
           />
           <div className="absolute top-4 left-4">
-            <span className="bg-red-600 text-white px-3 py-1 rounded text-sm font-medium">
+            <span className="bg-[#0f4c4c] text-white px-3 py-1 rounded text-sm font-medium">
               {article.tag}
             </span>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="flex items-center gap-2 text-sm text-red-600 font-medium mb-4">
-            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+          <div className="flex items-center gap-2 text-sm text-[#0f4c4c] font-medium mb-4">
+            <div className="w-2 h-2 bg-[#0f4c4c] rounded-full animate-pulse" />
             मुख्य खबर
           </div>
 
@@ -135,7 +135,7 @@ const FeaturedArticle = ({ article }) => {
             </div>
             <Link
               href={`/article/${article.id}`}
-              className="bg-gray-900 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 transition-colors"
+              className="bg-[#0f4c4c] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-95 transition-all"
             >
               पढ़ें
             </Link>
@@ -204,7 +204,7 @@ const PaginationBlock = ({ currentPage, totalPages, category, q }) => {
           href={buildUrl({ category, q, page: p })}
           className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
             p === currentPage
-              ? "bg-blue-600 text-white"
+              ? "bg-[#0f4c4c] text-white"
               : "text-gray-700 hover:bg-gray-100"
           }`}
         >
@@ -335,13 +335,15 @@ export default function CategoryNewsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
+      {/* Header (small back button) */}
       <BackButton className="sm:left-6 left-2 shadow-2xl" />
       <header className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">समाचार</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-['Noto_Sans_Devanagari']">
+                समाचार
+              </h1>
               <p className="text-gray-600 text-sm">ताज़ा खबरें और अपडेट</p>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -358,7 +360,7 @@ export default function CategoryNewsPage() {
           <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
             <Link
               href="/news"
-              className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1 hover:text-[#0f4c4c] transition-colors"
             >
               <Home size={16} />
               होम
@@ -391,7 +393,7 @@ export default function CategoryNewsPage() {
             name="q"
             defaultValue={q}
             placeholder="खबरें खोजें..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f4c4c] focus:border-[#0f4c4c]"
           />
         </form>
 
@@ -403,7 +405,7 @@ export default function CategoryNewsPage() {
               href={buildUrl({ category: cat, q, page: 1 })}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 cat === currentCategory
-                  ? "bg-blue-600 text-white"
+                  ? "bg-[#0f4c4c] text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -441,7 +443,7 @@ export default function CategoryNewsPage() {
             </p>
             <Link
               href="/news"
-              className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="bg-[#0f4c4c] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-95 transition-all"
             >
               सभी खबरें देखें
             </Link>
@@ -466,7 +468,7 @@ export default function CategoryNewsPage() {
         {/* Newsletter */}
         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 mt-12">
           <div className="flex items-center gap-3 mb-3">
-            <Mail className="text-blue-600 w-5 h-5" />
+            <Mail className="text-[#0f4c4c] w-5 h-5" />
             <h3 className="font-semibold text-gray-900">
               न्यूज़लेटर सब्सक्राइब करें
             </h3>
@@ -486,26 +488,18 @@ export default function CategoryNewsPage() {
               type="email"
               name="email"
               placeholder="आपका ईमेल पता"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4c4c]"
               required
             />
             <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="bg-[#0f4c4c] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-95 transition-all"
             >
               सब्सक्राइब
             </button>
           </form>
         </div>
       </main>
-
-      <footer className="border-t border-gray-200 mt-12">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="text-center text-gray-600 text-sm">
-            <p>© {new Date().getFullYear()} समाचार. सभी अधिकार सुरक्षित।</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
