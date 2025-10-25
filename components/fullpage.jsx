@@ -279,7 +279,7 @@ const ArticleCard = ({ article }) => (
           </div>
         </div>
         <a
-          href={article.link || `Read-full-news/${article.slug || "#"}`}
+          href={`/Read-full-news/${article.slug || "#"}`}
           className="text-sm font-semibold text-[#0f4c4c] hover:text-[#0a7f7f] transition-colors"
         >
           और पढ़ें →

@@ -8,10 +8,6 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import Logo from "@/public/logo.png";
 import Image from "next/image";
-import AdBanner from "@/components/AdBanner";
-import SimpleAd from "@/components/SimpleAd";
-import EffectiveGateAd from "@/components/EffectiveGateAd";
-import AdIframe from "@/components/AdIframe";
 import Header from "@/components/Header";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
@@ -552,8 +548,9 @@ export default function App() {
           </div>
         </section>
         {/* <HighPerfAd /> */}
+        
         <div className="flex justify-center my-6"></div>
-        {/* <AdBanner /> */}
+      
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
@@ -580,11 +577,9 @@ export default function App() {
         </section>
         {/* <EffectiveGateAd /> */}
       </main>
-
       <MobileNav />
       <Footer />
-
-      {/* Search modal */}
+    
       {showSearch && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-24">
           <div

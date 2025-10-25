@@ -2,6 +2,7 @@
 import ProfessionalLoader from "@/components/Loading";
 import React, { useState, useEffect } from "react";
 import { fetchCollection } from "@/components/server/fetchnews";
+import BackButton from "@/components/BackButton";
 import {
   Search,
   BookOpen,
@@ -20,22 +21,25 @@ const CATEGORIES = ["सभी", "प्रेम", "प्रकृति", "�
 // फ्लोटिंग शेप्स कम्पोनेंट
 function FloatingShapes() {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      <div className="absolute top-1/4 left-1/4 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full opacity-60 animate-float-slow"></div>
-      <div className="absolute top-1/3 right-1/4 w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-gradient-to-br from-green-100 to-green-50 rounded-full opacity-40 animate-float-medium"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-gradient-to-br from-amber-100 to-amber-50 rounded-full opacity-50 animate-float-fast"></div>
-      <div className="absolute top-1/2 right-1/3 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 opacity-30">
-        <div className="grid grid-cols-3 gap-1 sm:gap-2">
-          {[...Array(9)].map((_, i) => (
-            <div
-              key={i}
-              className="w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-pulse"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            />
-          ))}
+    <>
+      <BackButton />
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full opacity-60 animate-float-slow"></div>
+        <div className="absolute top-1/3 right-1/4 w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-gradient-to-br from-green-100 to-green-50 rounded-full opacity-40 animate-float-medium"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-gradient-to-br from-amber-100 to-amber-50 rounded-full opacity-50 animate-float-fast"></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 opacity-30">
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
+            {[...Array(9)].map((_, i) => (
+              <div
+                key={i}
+                className="w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 bg-gray-400 rounded-full animate-pulse"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -53,13 +57,15 @@ function PoemCard({ poem }) {
     poet: poem.poet,
     avatar: poem.avatar,
     // Use createdAt timestamp to get year
-    year: poem.createdAt ? new Date(poem.createdAt.seconds * 1000).getFullYear() : "Unknown",
+    year: poem.createdAt
+      ? new Date(poem.createdAt.seconds * 1000).getFullYear()
+      : "Unknown",
     // Use first tag as category or default to "जीवन"
     category: poem.tags && poem.tags.length > 0 ? poem.tags[0] : "जीवन",
     // Use text as content
     content: poem.text || "",
     // Default likes to 0 since it's not in Firestore
-    likes: poem.likes || 0
+    likes: poem.likes || 0,
   };
 
   const contentToShow = isExpanded
@@ -67,10 +73,9 @@ function PoemCard({ poem }) {
     : poemData.content.split("\n").slice(0, 2).join("\n");
 
   const handleShare = (platform) => {
-    const text = `${poemData.title} - ${poemData.poet}\n\n${poemData.content.substring(
-      0,
-      100
-    )}...`;
+    const text = `${poemData.title} - ${
+      poemData.poet
+    }\n\n${poemData.content.substring(0, 100)}...`;
     const url = window.location.href;
 
     const shareUrls = {
@@ -105,13 +110,15 @@ function PoemCard({ poem }) {
             <div className="flex items-center gap-2">
               {poemData.avatar && !imageError ? (
                 <div className="flex items-center gap-2">
-                  <img 
-                    src={poemData.avatar} 
+                  <img
+                    src={poemData.avatar}
                     alt={poemData.poet}
                     className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-gray-300"
                     onError={handleImageError}
                   />
-                  <span className="text-gray-700 font-medium text-sm sm:text-base">{poemData.poet}</span>
+                  <span className="text-gray-700 font-medium text-sm sm:text-base">
+                    {poemData.poet}
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1">
@@ -133,8 +140,8 @@ function PoemCard({ poem }) {
           {poemData.avatar && !imageError && (
             <div className="flex justify-center sm:justify-start sm:flex-shrink-0">
               <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                <img 
-                  src={poemData.avatar} 
+                <img
+                  src={poemData.avatar}
                   alt={`${poemData.poet} का अवतार`}
                   className="w-full h-full object-cover"
                   onError={handleImageError}
@@ -142,7 +149,7 @@ function PoemCard({ poem }) {
               </div>
             </div>
           )}
-          
+
           {/* Poem content */}
           <div className="flex-1 relative">
             <div className="absolute -left-2 sm:-left-4 top-0 w-0.5 sm:w-1 h-full bg-gradient-to-b from-blue-200 to-green-200 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -177,7 +184,9 @@ function PoemCard({ poem }) {
                 className={`sm:w-4 sm:h-4 ${isLiked ? "animate-pulse" : ""}`}
                 fill={isLiked ? "currentColor" : "none"}
               />
-              <span className="text-xs sm:text-sm">{poemData.likes + (isLiked ? 1 : 0)}</span>
+              <span className="text-xs sm:text-sm">
+                {poemData.likes + (isLiked ? 1 : 0)}
+              </span>
             </button>
 
             <div className="relative flex-1 xs:flex-none">
@@ -186,7 +195,9 @@ function PoemCard({ poem }) {
                 className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-all duration-300 w-full justify-center"
               >
                 <Share2 size={14} className="sm:w-4 sm:h-4" />
-                <span className="text-xs sm:text-sm hidden xs:inline">शेयर</span>
+                <span className="text-xs sm:text-sm hidden xs:inline">
+                  शेयर
+                </span>
               </button>
 
               {showShareMenu && (
@@ -211,7 +222,10 @@ function PoemCard({ poem }) {
           </div>
 
           <button className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm hover:shadow-md group/btn text-sm sm:text-base justify-center">
-            <BookOpen size={14} className="sm:w-4 sm:h-4 group-hover/btn:animate-bounce" />
+            <BookOpen
+              size={14}
+              className="sm:w-4 sm:h-4 group-hover/btn:animate-bounce"
+            />
             <span className="font-medium">पढ़ें</span>
           </button>
         </div>
@@ -235,20 +249,20 @@ function HindiPoemsCollection() {
         setLoading(true);
         const items = await fetchCollection("kavita");
         if (!mounted) return;
-        
+
         // Filter only published poems and map to expected structure
         const publishedPoems = items
-          .filter(item => item.published !== false) // Include only published poems
-          .map(item => ({
+          .filter((item) => item.published !== false) // Include only published poems
+          .map((item) => ({
             ...item,
             // Ensure all required fields are present
             text: item.text || "",
             tags: item.tags || [],
             poet: item.poet || "अज्ञात",
             title: item.title || "बिना शीर्षक",
-            avatar: item.avatar || null
+            avatar: item.avatar || null,
           }));
-          
+
         setPoems(publishedPoems);
       } catch (err) {
         if (!mounted) return;
@@ -267,17 +281,19 @@ function HindiPoemsCollection() {
       poem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       poem.poet.toLowerCase().includes(searchQuery.toLowerCase()) ||
       poem.text.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Use first tag as category for filtering
-    const poemCategory = poem.tags && poem.tags.length > 0 ? poem.tags[0] : "जीवन";
+    const poemCategory =
+      poem.tags && poem.tags.length > 0 ? poem.tags[0] : "जीवन";
     const matchesCategory =
       selectedCategory === "सभी" || poemCategory === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
   if (loading) return <ProfessionalLoader />;
-  if (error) return <div className="p-4 text-red-600 text-center">त्रुटि: {error}</div>;
+  if (error)
+    return <div className="p-4 text-red-600 text-center">त्रुटि: {error}</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative">
@@ -333,7 +349,9 @@ function HindiPoemsCollection() {
         {filteredPoems.length > 0 && (
           <div className="mb-4 sm:mb-6 text-center">
             <p className="text-gray-600 text-sm sm:text-base">
-              {filteredPoems.length} कविता{filteredPoems.length !== 1 ? 'एँ' : ''} मिली{filteredPoems.length !== 1 ? 'ं' : ''}
+              {filteredPoems.length} कविता
+              {filteredPoems.length !== 1 ? "एँ" : ""} मिली
+              {filteredPoems.length !== 1 ? "ं" : ""}
             </p>
           </div>
         )}
@@ -447,7 +465,7 @@ function HindiPoemsCollection() {
         .animate-fade-in-up {
           animation: fade-in-up 0.5s ease-out;
         }
-        
+
         /* Custom breakpoint for extra small devices */
         @media (min-width: 475px) {
           .xs\\:flex-row {
@@ -463,7 +481,7 @@ function HindiPoemsCollection() {
             display: inline;
           }
         }
-        
+
         /* Line clamp utility */
         .line-clamp-2 {
           overflow: hidden;
@@ -471,7 +489,7 @@ function HindiPoemsCollection() {
           -webkit-box-orient: vertical;
           -webkit-line-clamp: 2;
         }
-        
+
         /* Improve pre tag responsiveness */
         pre {
           white-space: pre-wrap;
