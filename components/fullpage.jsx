@@ -608,6 +608,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
               </a>
               <div className="mt-3">
                 <BackButton
+                  href="/news/सभी"
                   isFixed={true}
                   showLabel={true}
                   variant="light"
