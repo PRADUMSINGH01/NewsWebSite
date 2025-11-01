@@ -44,7 +44,7 @@ export default function Navbar({ theme, setTheme }) {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="flex items-center space-x-8">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -58,14 +58,6 @@ export default function Navbar({ theme, setTheme }) {
                 {link.title}
               </a>
             ))}
-
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 reading:bg-amber-200 text-gray-800 dark:text-gray-200 reading:text-amber-800"
-              aria-label="Theme switcher"
-            >
-              <span className="text-xl">{getThemeIcon()}</span>
-            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -119,7 +111,7 @@ export default function Navbar({ theme, setTheme }) {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 reading:bg-amber-50">
+        <div className="hidden bg-white dark:bg-gray-900 reading:bg-amber-50">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (
               <a

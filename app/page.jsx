@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import Logo from "@/public/logo.png";
 import Image from "next/image";
 import Header from "@/components/Header";
+import Hero from "@/components/Hero";
 // --- SVG ICONS --- //
 const HomeIcon = () => (
   <svg
@@ -282,101 +283,101 @@ const Ticker = ({ items = [] }) => (
   </div>
 );
 
-const Hero = ({ lead, trending = [] }) => (
-  <article className="rounded-xl overflow-hidden shadow-lg bg-white border border-gray-100">
-    <div className="lg:flex">
-      <div className="lg:w-2/3 relative group">
-        <img
-          src={lead.img}
-          alt={lead.title}
-          className="object-cover w-full h-72 lg:h-[450px]"
-          loading="lazy"
-        />
+// const Hero = ({ lead, trending = [] }) => (
+//   <article className="rounded-xl overflow-hidden shadow-lg bg-white border border-gray-100">
+//     <div className="lg:flex">
+//       <div className="lg:w-2/3 relative group">
+//         <img
+//           src={lead.img}
+//           alt={lead.title}
+//           className="object-cover w-full h-72 lg:h-[450px]"
+//           loading="lazy"
+//         />
 
-        <Link href={`Read-full-news/${lead.slug}`}>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
-              {lead.tag}
-            </span>
-            <h1 className="mt-4 font-bold text-2xl md:text-4xl leading-tight text-white font-['Noto_Sans_Devanagari']">
-              {lead.title}
-            </h1>
-            {/* <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
-            {lead.excerpt}
-          </p> */}
-            <div className="mt-4 flex items-center gap-3 text-sm text-white">
-              {lead.avatar ? (
-                <img
-                  src={lead.avatar}
-                  alt={lead.author}
-                  className="w-10 h-10 rounded-full border-2 border-white/50"
-                />
-              ) : (
-                ""
-              )}
-              <div className="font-medium">
-                {lead.author} •{" "}
-                {lead?.createdAt?.toDate
-                  ? lead.createdAt.toDate().toLocaleString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "No Date"}
-              </div>
-            </div>
-          </div>
-        </Link>
-      </div>
-      <aside className="lg:w-1/3 p-6 bg-gray-50 border-l border-gray-100">
-        <h2 className="font-bold text-gray-800 text-lg border-b-2 border-[#0f4c4c] pb-3 font-['Noto_Sans_Devanagari']">
-          ट्रेंडिंग खबरें
-        </h2>
-        <ol className="mt-4 space-y-4">
-          {trending.map((t) => (
-            <li
-              key={t.id}
-              className="group flex gap-4 items-start pb-4 border-b border-gray-100 last:border-b-0"
-            >
-              <img
-                src={t.img}
-                alt={t.title}
-                className="w-24 h-16 object-cover rounded-md flex-shrink-0"
-                loading="lazy"
-              />
-              <div className="flex-1">
-                <a
-                  href={`Read-full-news/${t.slug}`}
-                  className="font-semibold text-sm leading-snug text-gray-800 group-hover:text-[#0f4c4c] transition-colors line-clamp-2"
-                >
-                  {t.title}
-                </a>
-                <div className="text-xs text-gray-500 mt-2 flex items-center gap-2">
-                  <span>{t.author}</span>
-                  <span>•</span>
-                  <span>
-                    {t?.createdAt?.toDate
-                      ? t.createdAt.toDate().toLocaleString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "No Date"}
-                  </span>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </aside>
-    </div>
-  </article>
-);
+//         <Link href={`Read-full-news/${lead.slug}`}>
+//           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+//           <div className="absolute left-0 bottom-0 p-6 md:p-8 w-full">
+//             <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold uppercase tracking-wide">
+//               {lead.tag}
+//             </span>
+//             <h1 className="mt-4 font-bold text-2xl md:text-4xl leading-tight text-white font-['Noto_Sans_Devanagari']">
+//               {lead.title}
+//             </h1>
+//             {/* <p className="mt-3 text-sm text-gray-200 max-w-lg leading-relaxed">
+//             {lead.excerpt}
+//           </p> */}
+//             <div className="mt-4 flex items-center gap-3 text-sm text-white">
+//               {lead.avatar ? (
+//                 <img
+//                   src={lead.avatar}
+//                   alt={lead.author}
+//                   className="w-10 h-10 rounded-full border-2 border-white/50"
+//                 />
+//               ) : (
+//                 ""
+//               )}
+//               <div className="font-medium">
+//                 {lead.author} •{" "}
+//                 {lead?.createdAt?.toDate
+//                   ? lead.createdAt.toDate().toLocaleString("en-IN", {
+//                       day: "2-digit",
+//                       month: "short",
+//                       year: "numeric",
+//                       hour: "2-digit",
+//                       minute: "2-digit",
+//                     })
+//                   : "No Date"}
+//               </div>
+//             </div>
+//           </div>
+//         </Link>
+//       </div>
+//       <aside className="lg:w-1/3 p-6 bg-gray-50 border-l border-gray-100">
+//         <h2 className="font-bold text-gray-800 text-lg border-b-2 border-[#0f4c4c] pb-3 font-['Noto_Sans_Devanagari']">
+//           ट्रेंडिंग खबरें
+//         </h2>
+//         <ol className="mt-4 space-y-4">
+//           {trending.map((t) => (
+//             <li
+//               key={t.id}
+//               className="group flex gap-4 items-start pb-4 border-b border-gray-100 last:border-b-0"
+//             >
+//               <img
+//                 src={t.img}
+//                 alt={t.title}
+//                 className="w-24 h-16 object-cover rounded-md flex-shrink-0"
+//                 loading="lazy"
+//               />
+//               <div className="flex-1">
+//                 <a
+//                   href={`Read-full-news/${t.slug}`}
+//                   className="font-semibold text-sm leading-snug text-gray-800 group-hover:text-[#0f4c4c] transition-colors line-clamp-2"
+//                 >
+//                   {t.title}
+//                 </a>
+//                 <div className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+//                   <span>{t.author}</span>
+//                   <span>•</span>
+//                   <span>
+//                     {t?.createdAt?.toDate
+//                       ? t.createdAt.toDate().toLocaleString("en-IN", {
+//                           day: "2-digit",
+//                           month: "short",
+//                           year: "numeric",
+//                           hour: "2-digit",
+//                           minute: "2-digit",
+//                         })
+//                       : "No Date"}
+//                   </span>
+//                 </div>
+//               </div>
+//             </li>
+//           ))}
+//         </ol>
+//       </aside>
+//     </div>
+//   </article>
+// );
 
 const ArticleCard = ({ article }) => (
   <article className="group rounded-lg overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
@@ -523,8 +524,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-['Roboto','Noto_Sans_Devanagari']">
-      <Header />
-
       <div className="bg-amber-50 border-y border-amber-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4">
           <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider">
@@ -548,9 +547,9 @@ export default function App() {
           </div>
         </section>
         {/* <HighPerfAd /> */}
-        
+
         <div className="flex justify-center my-6"></div>
-      
+
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
             खेल ताज़ा खबरें
@@ -577,9 +576,9 @@ export default function App() {
         </section>
         {/* <EffectiveGateAd /> */}
       </main>
-      <MobileNav />
+      {/* <MobileNav /> */}
       <Footer />
-    
+
       {showSearch && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-24">
           <div

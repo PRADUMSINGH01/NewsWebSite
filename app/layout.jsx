@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-
+import Header from "@/components/Header";
 export default function RootLayout({ children }) {
   const [theme, setTheme] = useState("light");
 
@@ -34,14 +34,10 @@ export default function RootLayout({ children }) {
     <html lang="hi">
       <head />
       <body>
-       
-
+        <Header />
         <main className="container mx-auto px-4 py-6">{children}</main>
 
         <Analytics />
-
-      
-      
       </body>
     </html>
   );

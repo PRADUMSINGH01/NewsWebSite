@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import AdIframe from "@/components/AdIframe";
 import ProfessionalLoader from "./Loading";
 import { fetchCollection } from "./server/fetchnews";
-import BackButton from "@/components/BackButton";
+import LikeButton from "@/components/LikeButton";
+import ShareButtons from "./ShareButton";
 
 /* ------------------- Small UI pieces (kept in-file for simplicity) ------------------- */
 
@@ -388,10 +389,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
         Jump to content
       </a>
 
-      <main
-        id="content"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
-      >
+      <main id="content" className="max-w-7xl  sm:px-6 lg:px-8 ">
         <article className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex md:items-start">
             {/* MAIN COLUMN */}
@@ -444,22 +442,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   >
                     {views} बार देखा गया
                   </MetaItem>
-                  <MetaItem
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
-                    }
-                  >
-                    {likes} लाइक्स
-                  </MetaItem>
+                  <LikeButton /> लाइक्स
                 </div>
 
                 <div className="prose prose-lg max-w-none text-gray-800">
@@ -480,70 +463,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-gray-700">
-                      शेयर करें:
-                    </span>
-
-                    {/* Twitter */}
-                    <a
-                      href={
-                        title
-                          ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                              title +
-                                (excerpt ? " — " + excerpt : "") +
-                                " " +
-                                currentUrl
-                            )}`
-                          : "#"
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="ट्विटर पर साझा करें"
-                      className="p-2 rounded-md hover:bg-gray-100"
-                    >
-                      <TwitterIcon />
-                    </a>
-
-                    {/* WhatsApp */}
-                    <button
-                      type="button"
-                      onClick={handleWhatsAppShare}
-                      aria-label="WhatsApp पर साझा करें"
-                      className="p-2 rounded-md hover:bg-gray-100"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className="w-5 h-5"
-                        fill="currentColor"
-                      >
-                        <path d="M20.52 3.48A11.95 11.95 0 0012 0C5.373 0 .003 5.373 0 12c0 2.106.55 4.12 1.596 5.91L0 24l6.27-1.62A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12 0-3.2-1.25-6.17-3.48-8.52zM12.02 21.5c-1.86 0-3.69-.5-5.3-1.44l-.38-.22-3.72.96.99-3.62-.25-.37A8.48 8.48 0 013.53 12c0-4.69 3.82-8.5 8.53-8.5 2.28 0 4.42.89 6.02 2.5a8.47 8.47 0 012.48 6.01c0 4.69-3.82 8.5-8.53 8.5z" />
-                        <path d="M17.53 14.92c-.27-.14-1.6-.8-1.85-.89-.25-.09-.43-.13-.61.13-.18.25-.7.89-.86 1.07-.16.18-.32.2-.59.07-.27-.14-1.13-.42-2.15-1.33-.8-.71-1.34-1.59-1.5-1.87-.16-.28-.02-.43.12-.57.12-.12.27-.32.4-.48.13-.16.17-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.03-.22-.53-.45-.46-.62-.47l-.53-.01c-.18 0-.47.07-.72.34-.25.27-.96.94-.96 2.3 0 1.36.99 2.68 1.13 2.87.14.18 1.95 2.99 4.73 4.06 2.78 1.07 2.78.71 3.28.66.49-.06 1.6-.65 1.83-1.28.23-.63.23-1.17.16-1.28-.07-.12-.25-.18-.52-.32z" />
-                      </svg>
-                    </button>
-
-                    {/* Copy link */}
-                    <button
-                      type="button"
-                      onClick={handleCopyLink}
-                      aria-label="लिंक कॉपी करें"
-                      className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md hover:bg-gray-100"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M10 13a5 5 0 0 1 0-7l1.5-1.5a5 5 0 0 1 7 7L17 13" />
-                        <path d="M14 11a5 5 0 0 1 0 7L12.5 19.5a5 5 0 0 1-7-7L7 11" />
-                      </svg>
-                      <span className="text-sm text-gray-700">
-                        {copied ? "कॉप्ड!" : "लिंक कॉपी करें"}
-                      </span>
-                    </button>
+                    <ShareButtons />
                   </div>
                 </div>
               </div>
@@ -606,15 +526,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
               >
                 {author ? `${author} के और लेख पढ़ें →` : "और पढ़ें →"}
               </a>
-              <div className="mt-3">
-                <BackButton
-                  href="/news/सभी"
-                  isFixed={true}
-                  showLabel={true}
-                  variant="light"
-                  size="lg"
-                />
-              </div>
+              <div className="mt-3"></div>
             </div>
           </div>
         </section>
