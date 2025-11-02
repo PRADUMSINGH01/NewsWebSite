@@ -5,7 +5,7 @@ import Image from "next/image";
 import { User, Lock, Mail } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-export default function AuthForm({ className = "" }) {
+export default function AuthForm() {
   const pathname = usePathname();
   const isRegister = pathname.includes("register");
 
@@ -33,14 +33,9 @@ export default function AuthForm({ className = "" }) {
 
   return (
     <section
-      className={`flex justify-center items-center min-h-screen bg-gray-50 p-0 sm:p-0 md:p-6 ${className}`}
+      className={`flex justify-center items-center min-h-screen bg-gray-50 p-0 sm:p-0 md:p-6`}
     >
-      <div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden p-4 sm:p-6 md:p-8"
-      >
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden p-4 sm:p-6 md:p-8">
         {/* Brand logo and site title */}
         <div className="flex flex-col items-center justify-center mb-4">
           <a href="/" className="flex flex-col items-center">
