@@ -30,15 +30,13 @@ export default function Header({ setShowSearch: parentShowSearch }) {
   }, [showSearch]);
 
   const navItems = [
-    { t: "समाचार", url: "/news/सभी" },
+    { t: "होम", url: "/news/होम" },
     { t: "टेक", url: "/news/टेक" },
     { t: "खेल", url: "/news/खेल" },
-    { t: "बिजनेस", url: "/news/बिजनेस" },
-    { t: "मनोरंजन", url: "/news/मनोरंजन" },
     { t: "कविता", url: "/kavita" },
     { t: "कहानी", url: "/kahani" },
-    { t: "रोचक तथ्य", url: "/news/रोचक-तथ्य" },
-    { t: "फ़िल्मी दुनिया", url: "/news/फ़िल्मी-दुनिया" },
+    { t: "रोचक तथ्य", url: "/news/रोचक तथ्य" },
+    { t: "फ़िल्मी दुनिया", url: "/news/फ़िल्मी दुनिया" },
     { t: "फोटो गैलरी", url: "/photo-gallery" },
   ];
 

@@ -148,7 +148,7 @@ const FeaturedArticle = ({ article }) => {
 /* -------- Pagination helper (client-side links) -------- */
 const buildUrl = ({ category, q, page }) => {
   const categoryPath =
-    category && category !== "सभी" ? encodeURIComponent(category) : "सभी";
+    category && category !== "होम" ? encodeURIComponent(category) : "होम";
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (page) params.set("page", String(page));
@@ -283,7 +283,7 @@ export default function CategoryNewsPage() {
 
   // category from route params
   const categoryId = params?.id ?? null;
-  const currentCategory = categoryId ? decodeURIComponent(categoryId) : "सभी";
+  const currentCategory = categoryId ? decodeURIComponent(categoryId) : "होम";
 
   // query params via useSearchParams()
   const q = (searchParams?.get("q") ?? "").trim();
@@ -294,13 +294,13 @@ export default function CategoryNewsPage() {
   // categories list (depending on loaded articles)
   const categories = useMemo(() => {
     const all = SAMPLE_ARTICLES.map((a) => a.tag).filter(Boolean);
-    return ["सभी", ...Array.from(new Set(all))];
+    return ["होम", ...Array.from(new Set(all))];
   }, [SAMPLE_ARTICLES]);
 
   // filter articles by category and search
   const filtered = useMemo(() => {
     let arr = SAMPLE_ARTICLES || [];
-    if (categoryId && currentCategory !== "सभी") {
+    if (categoryId && currentCategory !== "होम") {
       arr = arr.filter((a) => a.tag === currentCategory);
     }
     if (q) {
@@ -354,7 +354,7 @@ export default function CategoryNewsPage() {
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
-        {currentCategory !== "सभी" && (
+        {currentCategory !== "होम" && (
           <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
             <Link
               href="/news"

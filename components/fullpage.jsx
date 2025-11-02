@@ -5,7 +5,8 @@ import ProfessionalLoader from "./Loading";
 import { fetchCollection } from "./server/fetchnews";
 import LikeButton from "@/components/LikeButton";
 import ShareButtons from "./ShareButton";
-
+import { usePathname } from "next/navigation";
+import Head from "next/head";
 /* ------------------- Small UI pieces (kept in-file for simplicity) ------------------- */
 
 const UserIcon = ({ className = "w-5 h-5" }) => (
@@ -227,6 +228,32 @@ function renderContentArray(contentArray) {
   });
 }
 
+export async function generateMetadata({ article }) {
+  return {
+    title: article.title,
+    description: article.excerpt || article.summary || "",
+    openGraph: {
+      title: article.title,
+      description: article.excerpt || article.summary || "",
+      url,
+      type: "article",
+      images: [
+        {
+          url: article.img,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.excerpt || article.summary || "",
+      images: [image],
+    },
+  };
+}
 /* ------------------------- Small visual components ------------------------- */
 
 const TagBadge = ({ children }) => (
@@ -306,7 +333,8 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
   const author = post?.author || "लेखक";
   const views = typeof post?.views === "number" ? post.views : 0;
   const likes = typeof post?.likes === "number" ? post.likes : 0;
-
+  const pathname = usePathname();
+  console.log(pathname);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -390,6 +418,17 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
       </a>
 
       <main id="content" className="max-w-7xl  sm:px-6 lg:px-8 ">
+        <Head>
+          <title>{post.title}</title>
+          <meta property="og:title" content={post.title} />
+          <meta property="og:description" content={post.excerpt} />
+          <meta property="og:image" content={post.img} />
+          <meta
+            property="og:url"
+            content={`https://www.hmarduniya.in/fullread/${pathname}`}
+          />
+          <meta name="twitter:card" content="summary_large_image" />
+        </Head>
         <article className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex md:items-start">
             {/* MAIN COLUMN */}
@@ -463,7 +502,11 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <ShareButtons />
+                    <ShareButtons
+                      image={post.img}
+                      title={post.title}
+                      url={pathname}
+                    />
                   </div>
                 </div>
               </div>
