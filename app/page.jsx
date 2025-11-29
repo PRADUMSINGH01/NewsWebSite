@@ -99,57 +99,6 @@ const GlobeIcon = () => (
 );
 
 // --- SAMPLE DATA --- //
-const SAMPLE_ARTICLES = [
-  {
-    id: 1,
-    tag: "राजनीति",
-    title: "संसद का मानसून सत्र: नए विधेयकों पर होगी गरमागरम बहस",
-    excerpt:
-      "सरकार इस सत्र में कई महत्वपूर्ण विधेयक पेश करने की तैयारी में है, विपक्ष ने भी अपनी रणनीति बना ली है।",
-    author: "रवि प्रकाश",
-    time: "2 घंटे पहले",
-    img: "https://images.unsplash.com/photo-1602339257297-2519247c9e0d?auto=format&fit=crop&w=1600&q=80",
-    credit: "Photo: Unsplash / A. L.",
-    avatar: "https://i.pravatar.cc/48?img=1",
-  },
-  {
-    id: 2,
-    tag: "मनोरंजन",
-    title: "सिनेमा का भविष्य: ओटीटी प्लेटफॉर्म्स और बड़े पर्दे की जंग",
-    excerpt:
-      "क्या डिजिटल रिलीज फिल्मों के बॉक्स ऑफिस कलेक्शन को प्रभावित कर रही हैं? जानिए विशेषज्ञों की राय।",
-    author: "प्रिया मेहरा",
-    time: "5 घंटे पहले",
-    img: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=1600&q=80",
-    credit: "Photo: Unsplash / A. B.",
-    avatar: "https://i.pravatar.cc/48?img=2",
-  },
-  {
-    id: 3,
-    tag: "खेल",
-    title: "विश्व कप फाइनल: भारत की शानदार जीत, देशभर में जश्न का माहौल",
-    excerpt:
-      "आखिरी ओवर के रोमांच में टीम इंडिया ने दिखाया दम, कप्तान के शतक ने दिलाई ऐतिहासिक जीत।",
-    author: "विक्रम सिंह",
-    time: "8 घंटे पहले",
-    img: "https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=1600&q=80",
-    credit: "Photo: Unsplash / S. M.",
-    avatar: "https://i.pravatar.cc/48?img=3",
-  },
-  {
-    id: 4,
-    tag: "टेक",
-    title:
-      "आर्टिफिशियल इंटेलिजेंस: क्या यह नौकरियां खत्म कर देगा या नए अवसर पैदा करेगा?",
-    excerpt:
-      "एआई के बढ़ते प्रभाव से उद्योग जगत में बड़े बदलाव की उम्मीद है, जानिए आपके करियर पर क्या होगा असर।",
-    author: "अंजलि गुप्ता",
-    time: "1 दिन पहले",
-    img: "https://images.unsplash.com/photo-1550745165-9bc0b252726a?auto=format&fit=crop&w=1600&q=80",
-    credit: "Photo: Unsplash / L. R.",
-    avatar: "https://i.pravatar.cc/48?img=4",
-  },
-];
 
 // const Header = ({ setShowSearch }) => {
 //   const today = new Date();
