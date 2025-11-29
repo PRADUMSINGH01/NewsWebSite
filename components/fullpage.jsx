@@ -464,24 +464,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   <MetaItem icon={<CalendarIcon className="w-4 h-4" />}>
                     {dateLabel}
                   </MetaItem>
-                  <MetaItem
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M15 10l4.553-2.276A2 2 0 0 1 22 9.618V17a2 2 0 0 1-2 2h-6" />
-                        <path d="M10 14L4.447 16.276A2 2 0 0 1 2 14.382V7a2 2 0 0 1 2-2h6" />
-                      </svg>
-                    }
-                  >
-                    {views} बार देखा गया
-                  </MetaItem>
-                  <LikeButton /> लाइक्स
                 </div>
 
                 <div className="prose prose-lg max-w-none text-gray-800">
