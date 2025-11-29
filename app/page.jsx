@@ -543,7 +543,7 @@ export default function App() {
                   aria-label="search-input"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="खबर, विषय या व्यक्ति खोजें..."
+                  placeholder="खबर,  विषय या व्यक्ति खोजें..."
                   className="flex-1 bg-transparent focus:outline-none text-lg placeholder-gray-400"
                 />
                 <button
