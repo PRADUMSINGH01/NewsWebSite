@@ -101,9 +101,7 @@ function getDateFromPost(post) {
     if (createdAt.toDate && typeof createdAt.toDate === "function") {
       try {
         return createdAt.toDate();
-      } catch (e) {
-        /* ignore */
-      }
+      } catch (e) {}
     }
   }
 
