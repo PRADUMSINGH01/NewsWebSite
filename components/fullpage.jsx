@@ -327,8 +327,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
   const excerpt = post?.excerpt || "";
   const avatar = post?.avatar || "/avatar-placeholder.png";
   const author = post?.author || "लेखक";
-  const views = typeof post?.views === "number" ? post.views : 0;
-  const likes = typeof post?.likes === "number" ? post.likes : 0;
   const pathname = usePathname();
   console.log(pathname);
   const [data, setData] = useState([]);
