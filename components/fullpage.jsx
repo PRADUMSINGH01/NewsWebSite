@@ -1,9 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import AdIframe from "@/components/AdIframe";
 import ProfessionalLoader from "./Loading";
 import { fetchCollection } from "./server/fetchnews";
-import LikeButton from "@/components/LikeButton";
 import ShareButtons from "./ShareButton";
 import { usePathname } from "next/navigation";
 import Head from "next/head";
