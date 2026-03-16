@@ -4,11 +4,33 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "images.pexels.com", // <-- Add this new line
+        hostname: "images.pexels.com",
       },
-      // You can keep the old ones if you still use them elsewhere
-      { protocol: "https", hostname: "firebasestorage.googleapis.com" }, // ...etc
+      { 
+        protocol: "https", 
+        hostname: "firebasestorage.googleapis.com", 
+        pathname: "/**" 
+      },
     ],
+    // Helps bypass 412 errors from Firebase Storage tokens by skipping Next.js internal image optimization
+    unoptimized: true,
+  },
+  async headers() {
+    return [
+      {
+        source: "/api/og",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
+          },
+        ],
+      },
+    ];
   },
 };
 

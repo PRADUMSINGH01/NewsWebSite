@@ -4,7 +4,6 @@ import ProfessionalLoader from "./Loading";
 import { fetchCollection } from "./server/fetchnews";
 import ShareButtons from "./ShareButton";
 import { usePathname } from "next/navigation";
-import Head from "next/head";
 /* ------------------- Small UI pieces (kept in-file for simplicity) ------------------- */
 
 const UserIcon = ({ className = "w-5 h-5" }) => (
@@ -101,7 +100,7 @@ function getDateFromPost(post) {
     if (createdAt.toDate && typeof createdAt.toDate === "function") {
       try {
         return createdAt.toDate();
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -156,13 +155,13 @@ function renderContentArray(contentArray) {
 
     if (block.type === "subheading") {
       return (
-        <h3
+        <h2
           key={idx}
-          className="text-xl font-bold mb-3 mt-6 text-gray-900"
+          className="text-2xl font-bold mb-3 mt-6 text-gray-900"
           style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
         >
           {block.text || block.content || block.headingText}
-        </h3>
+        </h2>
       );
     }
 
@@ -222,33 +221,6 @@ function renderContentArray(contentArray) {
       </p>
     );
   });
-}
-
-export async function generateMetadata({ article }) {
-  return {
-    title: article.title,
-    description: article.excerpt || article.summary || "",
-    openGraph: {
-      title: article.title,
-      description: article.excerpt || article.summary || "",
-      url,
-      type: "article",
-      images: [
-        {
-          url: article.img,
-          width: 1200,
-          height: 630,
-          alt: article.title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: article.title,
-      description: article.excerpt || article.summary || "",
-      images: [image],
-    },
-  };
 }
 /* ------------------------- Small visual components ------------------------- */
 
@@ -328,7 +300,11 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
   const avatar = post?.avatar || "/avatar-placeholder.png";
   const author = post?.author || "लेखक";
   const pathname = usePathname();
-  console.log(pathname);
+  
+  const tag = post?.tag || "समाचार";
+  const SITE_URL = typeof window !== "undefined" ? window.location.origin : "https://www.hmarduniya.in";
+  const ogImageUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}`;
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -393,7 +369,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
     window.open(wa, "_blank");
   }
 
-  if (loading) return <ProfessionalLoader />;
   if (error)
     return (
       <div className="text-red-500 p-4">
@@ -411,82 +386,102 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
         Jump to content
       </a>
 
-      <main id="content" className="max-w-7xl  sm:px-6 lg:px-8 ">
-        <Head>
-          <title>{post.title}</title>
-          <meta property="og:title" content={post.title} />
-          <meta property="og:description" content={post.excerpt} />
-          <meta property="og:image" content={post.img} />
-          <meta
-            property="og:url"
-            content={`https://www.hmarduniya.in/fullread/${pathname}`}
-          />
-          <meta name="twitter:card" content="summary_large_image" />
-        </Head>
-        <article className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="md:flex md:items-start">
-            {/* MAIN COLUMN */}
-            <div className="md:flex-1">
-              {/* Hero */}
-              <div className="w-full h-56 md:h-80 bg-gray-100 overflow-hidden">
-                <img
-                  src={post?.img || "/placeholder-1200x600.png"}
-                  alt={title}
-                  className="w-full h-full object-cover"
-                />
+      <main id="content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="md:flex md:items-start md:gap-8 lg:gap-12">
+          {/* MAIN COLUMN */}
+          <article className="md:flex-1 bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <header className="p-6 md:p-8 lg:p-10 pb-6 w-full max-w-4xl mx-auto">
+              {/* Top metadata & Actions */}
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <TagBadge>{post?.tag || "समाचार"}</TagBadge>
+                <div className="flex items-center gap-3">
+                  <span className="hidden sm:inline-block text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Share
+                  </span>
+                  <ShareButtons
+                    image={ogImageUrl}
+                    title={title}
+                    url={`https://www.hmarduniya.in${pathname}`}
+                  />
+                </div>
               </div>
 
-              <div className="p-6 md:p-8">
-                <div className="mb-4">
-                  <TagBadge>{post?.tag || "समाचार"}</TagBadge>
-                </div>
+              {/* Title */}
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-5 text-gray-900 font-['Noto_Sans_Devanagari'] tracking-tight">
+                {title}
+              </h1>
 
-                <h1 className="text-2xl md:text-4xl font-extrabold leading-tight mb-4 text-gray-900">
-                  {title}
-                </h1>
+              {/* Excerpt */}
+              {excerpt ? (
+                <p className="text-gray-600 text-lg md:text-xl lg:text-2xl leading-relaxed mb-8 font-medium font-['Noto_Sans_Devanagari']">
+                  {excerpt}
+                </p>
+              ) : null}
 
-                {excerpt ? (
-                  <p className="text-gray-700 text-base md:text-lg mb-6">
-                    {excerpt}
-                  </p>
-                ) : null}
-
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                  <MetaItem icon={<UserIcon className="w-4 h-4" />}>
-                    {author}
-                  </MetaItem>
-                  <MetaItem icon={<CalendarIcon className="w-4 h-4" />}>
-                    {dateLabel}
-                  </MetaItem>
-                </div>
-
-                <div className="prose prose-lg max-w-none text-gray-800">
-                  {renderContentArray(
-                    post?.content || post?.content?.blocks || []
-                  )}
-                </div>
-
-                {/* share + tags (includes Twitter, WhatsApp, Copy) */}
-                <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <span className="text-sm font-semibold text-gray-700">
-                      टैग:
-                    </span>
-                    <span className="text-xs bg-gray-200 px-3 py-1 rounded-full">
-                      #{(post?.tag || "समाचार").replace(/\s+/g, "")}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <ShareButtons
-                      image={post.img}
-                      title={post.title}
-                      url={pathname}
-                    />
+              {/* Author & Date Box */}
+              <div className="flex items-center justify-between py-5 border-y border-gray-100 bg-gray-50/50 -mx-6 md:-mx-8 lg:-mx-10 px-6 md:px-8 lg:px-10 mb-2">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={avatar}
+                    alt={author}
+                    className="w-12 h-12 rounded-full object-cover ring-4 ring-white shadow-sm"
+                  />
+                  <div>
+                    <p className="text-base font-bold text-gray-900 line-clamp-1">
+                      {author}
+                    </p>
+                    <time
+                      className="text-sm text-gray-500 font-medium"
+                      dateTime={post?.createdAt ? new Date(post.createdAt).toISOString() : ""}
+                    >
+                      {dateLabel}
+                    </time>
                   </div>
                 </div>
               </div>
+            </header>
+
+            {/* Featured Image */}
+            <div className="w-full h-64 md:h-96 lg:h-[500px] bg-gray-100 overflow-hidden relative">
+              <img
+                src={post?.img || "/placeholder-1200x600.png"}
+                alt={title}
+                className="w-full h-full object-cover"
+                loading="eager"
+              />
             </div>
+
+            <div className="p-6 md:p-8 lg:p-10 w-full max-w-4xl mx-auto">
+              <div className="prose prose-lg md:prose-xl prose-blue max-w-none text-gray-800 leading-relaxed font-['Noto_Sans_Devanagari']">
+                {renderContentArray(
+                  post?.content || post?.content?.blocks || []
+                )}
+              </div>
+
+              {/* Footer Share & Tags */}
+              <footer className="mt-12 pt-8 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                    Tags
+                  </span>
+                  <span className="text-sm bg-gray-100 text-gray-800 font-semibold px-4 py-2 rounded-full hover:bg-gray-200 transition-colors cursor-pointer shadow-sm">
+                    #{((post?.tag || "समाचार").replace(/\s+/g, ""))}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                    Share
+                  </span>
+                  <ShareButtons
+                    image={ogImageUrl}
+                    title={title}
+                    url={`https://www.hmarduniya.in${pathname}`}
+                  />
+                </div>
+              </footer>
+            </div>
+          </article>
 
             {/* SIDEBAR */}
             <aside className="hidden md:block md:w-80 lg:w-96 bg-white border-l border-gray-100">
@@ -527,7 +522,6 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
               </div>
             </aside>
           </div>
-        </article>
 
         {/* author */}
         <section className="mt-12">
@@ -552,14 +546,28 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
 
         {/* related grid */}
         <section className="my-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 border-l-4 border-[#0f4c4c] pl-4">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 border-l-4 border-[#0f4c4c] pl-4 font-['Noto_Sans_Devanagari']">
             खबरें
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.slice(renStart, renEnd).map((a) => (
-              <ArticleCard key={a.id || a.slug || a.title} article={a} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="rounded-lg overflow-hidden bg-white border border-gray-100 shadow-sm animate-pulse">
+                  <div className="h-40 bg-gray-200" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {data.slice(renStart, renEnd).map((a) => (
+                <ArticleCard key={a.id || a.slug || a.title} article={a} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>

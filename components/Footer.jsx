@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -87,7 +88,7 @@ export default function Footer() {
                       key={label}
                       href={href}
                       aria-label={label}
-                      className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-200 text-gray-700 hover:bg-[#0a7f7f] hover:text-white transition"
+                      className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-200 text-gray-700 hover:bg-[#0f4c4c] hover:text-white transition"
                       rel="noopener noreferrer"
                       target="_blank"
                     >
@@ -100,7 +101,7 @@ export default function Footer() {
 
             <p className="mt-6 text-xs text-gray-600">
               Ads displayed on this website are served by Google. Read our{" "}
-              <Link href="/privacy-policy" className="underline">
+              <Link href="/privacy-Policy" className="underline">
                 Privacy Policy
               </Link>
               .
@@ -121,7 +122,7 @@ export default function Footer() {
                   <li key={name}>
                     <Link
                       href={href}
-                      className="hover:text-[#0a7f7f] transition-colors"
+                      className="hover:text-[#0f4c4c] transition-colors"
                     >
                       {name}
                     </Link>
@@ -139,7 +140,7 @@ export default function Footer() {
                   <li key={name}>
                     <Link
                       href={href}
-                      className="hover:text-[#0a7f7f] transition-colors"
+                      className="hover:text-[#0f4c4c] transition-colors"
                     >
                       {name}
                     </Link>
@@ -157,7 +158,7 @@ export default function Footer() {
                   <li key={name}>
                     <Link
                       href={href}
-                      className="hover:text-[#0a7f7f] transition-colors"
+                      className="hover:text-[#0f4c4c] transition-colors"
                     >
                       {name}
                     </Link>
@@ -192,11 +193,11 @@ export default function Footer() {
                 type="email"
                 required
                 placeholder="Your Email"
-                className="flex-1 px-3 py-2 rounded-md border border-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0a7f7f]"
+                className="flex-1 px-3 py-2 rounded-md border border-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0f4c4c]"
               />
               <button
                 type="submit"
-                className="px-3 py-2 rounded-md bg-[#0a7f7f] text-white text-sm font-medium hover:bg-[#0e6f6f] focus:outline-none"
+                className="px-3 py-2 rounded-md bg-[#0f4c4c] text-white text-sm font-medium hover:bg-[#0a7f7f] focus:outline-none"
               >
                 Subscribe
               </button>
@@ -232,13 +233,13 @@ export default function Footer() {
           </p>
 
           <div className="flex items-center gap-4">
-            <Link href="/terms" className="hover:text-[#0a7f7f]">
+            <Link href="/terms" className="hover:text-[#0f4c4c]">
               Terms
             </Link>
-            <Link href="/privacy-Policy" className="hover:text-[#0a7f7f]">
+            <Link href="/privacy-Policy" className="hover:text-[#0f4c4c]">
               Privacy
             </Link>
-            <Link href="/cookie-policy" className="hover:text-[#0a7f7f]">
+            <Link href="/cookies-policy" className="hover:text-[#0f4c4c]">
               Cookies
             </Link>
             <span className="text-gray-300">|</span>
