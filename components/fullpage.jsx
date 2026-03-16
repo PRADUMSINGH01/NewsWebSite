@@ -358,19 +358,19 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
           </h2>
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="rounded-xl overflow-hidden bg-white border border-gray-100 animate-pulse">
-                  <div className="h-28 sm:h-40 bg-gray-200" />
-                  <div className="p-3 space-y-2">
-                    <div className="h-3 bg-gray-200 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div key={i} className="flex sm:flex-col gap-3 sm:gap-0 rounded-xl overflow-hidden bg-white border border-gray-100 animate-pulse">
+                  <div className="w-28 h-24 sm:w-full sm:h-40 bg-gray-200 shrink-0" />
+                  <div className="p-3 w-full flex flex-col justify-center space-y-3">
+                    <div className="h-3 bg-gray-200 rounded w-full" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {data.slice(renStart, renEnd).map((a) => (
                 <ArticleCard key={a.id || a.slug || a.title} article={a} />
               ))}

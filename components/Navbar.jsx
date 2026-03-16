@@ -49,11 +49,10 @@ export default function Navbar({ theme, setTheme }) {
               <a
                 key={link.href}
                 href={link.href}
-                className={`${
-                  pathname === link.href
-                    ? "text-blue-600 dark:text-blue-400 reading:text-amber-700 font-bold"
+                className={`${pathname === link.href
+                    ? "text-[#0f4c4c] dark:text-[#0a7f7f] reading:text-amber-700 font-bold"
                     : "text-gray-700 dark:text-gray-300 reading:text-amber-900"
-                } hover:text-blue-500 transition-colors`}
+                  } hover:text-[#0a7f7f] transition-colors`}
               >
                 {link.title}
               </a>
@@ -117,11 +116,10 @@ export default function Navbar({ theme, setTheme }) {
               <a
                 key={link.href}
                 href={link.href}
-                className={`${
-                  pathname === link.href
-                    ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300 reading:bg-amber-100 reading:text-amber-700"
+                className={`${pathname === link.href
+                    ? "bg-[#0f4c4c]/10 text-[#0f4c4c] dark:bg-[#0f4c4c]/20 dark:text-[#0a7f7f] reading:bg-amber-100 reading:text-amber-700"
                     : "text-gray-700 dark:text-gray-300 reading:text-amber-900 hover:bg-gray-100 dark:hover:bg-gray-800 reading:hover:bg-amber-100"
-                } block px-3 py-2 rounded-md font-medium`}
+                  } block px-3 py-2 rounded-md font-medium`}
               >
                 {link.title}
               </a>
