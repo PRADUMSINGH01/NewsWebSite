@@ -402,11 +402,6 @@ const MobileNav = () => (
 );
 
 export default async function Home() {
-  const tickerItems = [
-    "बड़ी खबर: वैश्विक अर्थव्यवस्था में नई चुनौती—विशेष रिपोर्ट",
-    "मनोरंजन: फिल्म X ने बॉक्स ऑफिस पर तोड़ा रिकॉर्ड",
-    "खेल: कप्तान ने किया चौंकाने वाला फैसला",
-  ];
 
   let data = [];
   try {
@@ -427,6 +422,16 @@ export default async function Home() {
     });
   } catch (err) {
     console.error("Error fetching news for home page:", err);
+  }
+
+  // Ticker: fetch from dedicated `ticker` collection in Firebase
+  let tickerItems = ["ताज़ा खबरें..."];
+  try {
+    const tickerData = await fetchCollection("ticker");
+    const titles = tickerData.map(t => t.title).filter(Boolean);
+    if (titles.length > 0) tickerItems = titles;
+  } catch (err) {
+    console.error("Error fetching ticker:", err);
   }
 
   function normalizeTag(tag) {
