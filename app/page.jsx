@@ -1,7 +1,5 @@
-"use client";
 import Script from "next/script";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { fetchCollection } from "@/components/server/fetchnews";
 import ProfessionalLoader from "@/components/Loading";
 import Link from "next/link";
@@ -359,8 +357,8 @@ const ArticleCard = ({ article }) => (
             <div className="font-medium">{article.author}</div>
             <div className="text-xs">
               {" "}
-              {article?.createdAt?.toDate
-                ? article.createdAt.toDate().toLocaleString("en-IN", {
+              {article?.createdAt
+                ? new Date(article.createdAt).toLocaleString("en-IN", {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
@@ -403,76 +401,77 @@ const MobileNav = () => (
   </nav>
 );
 
-export default function App() {
-  const [query, setQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const [tickerItems] = useState([
+export default async function Home() {
+  const tickerItems = [
     "बड़ी खबर: वैश्विक अर्थव्यवस्था में नई चुनौती—विशेष रिपोर्ट",
     "मनोरंजन: फिल्म X ने बॉक्स ऑफिस पर तोड़ा रिकॉर्ड",
     "खेल: कप्तान ने किया चौंकाने वाला फैसला",
-  ]);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  ];
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError(null);
-        const items = await fetchCollection("news"); // <-- await the promise
-        if (!mounted) return;
-        setData(items);
-      } catch (err) {
-        if (!mounted) return;
-        setError(err);
-      } finally {
-        if (!mounted) return;
-        setLoading(false);
+  let data = [];
+  try {
+    const rawData = await fetchCollection("news");
+    // Serialize Firebase Timestamps into ISO strings to safely pass to Client Components
+    data = rawData.map(item => {
+      let createdAtStr = null;
+      if (item.createdAt && typeof item.createdAt.toDate === "function") {
+        createdAtStr = item.createdAt.toDate().toISOString();
+      } else if (item.time) {
+        createdAtStr = new Date(item.time).toISOString();
       }
-    }
+      return {
+        ...item,
+        createdAt: createdAtStr,
+        time: createdAtStr
+      };
+    });
+  } catch (err) {
+    console.error("Error fetching news for home page:", err);
+  }
 
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-  if (loading) return <ProfessionalLoader />;
-  if (error) return <div>Error: {error.message || String(error)}</div>;
-
-  // filter ----------------------------------
   function normalizeTag(tag) {
     if (!tag) return "";
     return tag.toString().trim().toLowerCase();
   }
 
   const TARGET = "फ़िल्मी दुनिया";
-
   const educationArticles = data.filter(
     (article) => normalizeTag(article.tag) === normalizeTag(TARGET)
   );
+
   const sport = "खेल";
   const sport_result = data.filter(
     (artical) => normalizeTag(artical.tag) === normalizeTag(sport)
   );
 
-  // If you want a fallback to show something when no education articles:
   const lead = educationArticles[0] ?? data[0] ?? null;
   const trending =
     educationArticles.length > 1
       ? educationArticles.slice(1, 4)
       : data.slice(1, 4);
 
-  // pass to खेल
-
   const sport_lead = sport_result[0] ?? data[0] ?? null;
   const tranding =
     sport_result.length > 1 ? sport_result.slice(0, 4) : data.slice(1, 4);
 
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Hmar Duniya",
+    "url": "https://www.hmarduniya.in",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.hmarduniya.in/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-900 font-['Roboto','Noto_Sans_Devanagari']">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
       <div className="bg-amber-50 border-y border-amber-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-4">
           <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider">
@@ -483,7 +482,7 @@ export default function App() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Hero lead={data[0]} trending={data.slice(1, 5)} />
+        {data.length > 0 && <Hero lead={data[0]} trending={data.slice(1, 5)} />}
 
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
@@ -495,9 +494,6 @@ export default function App() {
             ))}
           </div>
         </section>
-        {/* <HighPerfAd /> */}
-
-        <div className="flex justify-center my-6"></div>
 
         <section className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
@@ -509,75 +505,22 @@ export default function App() {
             ))}
           </div>
         </section>
+        
         <h2 className="text-2xl font-bold text-gray-900 mb-6 font-['Noto_Sans_Devanagari'] border-l-4 border-[#0f4c4c] pl-4">
           मनोरंजन ताज़ा खबरें
         </h2>
-        {/* <SimpleAd /> */}
-        <Hero lead={lead} trending={trending} />
+        
+        {lead && <Hero lead={lead} trending={trending} />}
+        
         <section className="my-12">
-          {/* <EffectiveGateAd /> */}
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.slice(18, 22).map((a) => (
               <ArticleCard key={a.id} article={a} />
             ))}
           </div>
         </section>
-        {/* <EffectiveGateAd /> */}
       </main>
-      {/* <MobileNav /> */}
       <Footer />
-
-      {showSearch && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 sm:pt-24">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowSearch(false)}
-          />
-          <div className="relative z-50 w-full max-w-2xl px-4">
-            <div className="bg-white rounded-xl p-6 shadow-2xl border border-gray-200">
-              <div className="flex items-center gap-4">
-                <SearchIcon className="h-5 w-5 text-gray-500" />
-                <input
-                  autoFocus
-                  aria-label="search-input"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="खबर,  विषय या व्यक्ति खोजें..."
-                  className="flex-1 bg-transparent focus:outline-none text-lg placeholder-gray-400"
-                />
-                <button
-                  onClick={() => setShowSearch(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  रद्द करें
-                </button>
-              </div>
-              <div className="mt-6 border-t border-gray-100 pt-4">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  लोकप्रिय विषय
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "दिल्ली चुनाव",
-                    "बॉलीवुड",
-                    "क्रिकेट विश्व कप",
-                    "नई नौकरी",
-                    "बजट 2024",
-                  ].map((tag) => (
-                    <button
-                      key={tag}
-                      className="px-4 py-2 rounded-full bg-gray-100 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
