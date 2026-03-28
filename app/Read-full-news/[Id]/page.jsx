@@ -101,6 +101,9 @@ export async function generateMetadata(props) {
     const url = `${SITE_URL}/Read-full-news/${decodedSlug}`;
     const author = postData?.author || SITE_NAME;
     const datePublished = getDateISO(postData);
+    
+    // Specifically define dynamic open graph URL for social media fallback (such as strict twitter cards)
+    const ogImageUrl = `${SITE_URL}/Read-full-news/${decodedSlug}/opengraph-image`;
 
     return {
       title: title,
@@ -122,7 +125,8 @@ export async function generateMetadata(props) {
         card: "summary_large_image",
         title: title,
         description: excerpt,
-      },
+        images: [ogImageUrl],
+      }, 
     };
   } catch (err) {
     return {};
