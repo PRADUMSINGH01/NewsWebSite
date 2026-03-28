@@ -12,7 +12,8 @@ const nextConfig = {
         pathname: "/**" 
       },
     ],
-    // Helps bypass 412 errors from Firebase Storage tokens by skipping Next.js internal image optimization
+    // Firebase Storage returns 412 to Next.js image optimization proxy
+    // Required until images are migrated to a CDN that supports optimization
     unoptimized: true,
   },
   async headers() {

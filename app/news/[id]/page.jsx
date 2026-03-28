@@ -1,503 +1,456 @@
-"use client";
-// app/news/[id]/page.jsx
-import React, { useEffect, useMemo, useState } from "react";
+// app/news/[id]/page.jsx — Server Component (SEO-optimized)
+import React, { cache } from "react";
 import Link from "next/link";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
-import ProfessionalLoader from "@/components/Loading";
-import {
-  Search,
-  Clock,
-  Eye,
-  TrendingUp,
-  Mail,
-  User,
-  Calendar,
-  Home,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 import { fetchCollection } from "@/components/server/fetchnews";
+import Footer from "@/components/Footer";
 
-const PAGE_SIZE = 6;
-const PAGINATION_RANGE = 3;
+// ISR: Rebuild every 5 minutes
+export const revalidate = 300;
 
-/* ---------- Presentational pieces (pure functions, client-safe) ---------- */
+const PAGE_SIZE = 12;
+const SITE_URL = "https://www.hmarduniya.in";
 
-const ArticleCard = ({ article }) => {
-  return (
-    <article className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300">
-      <div className="relative aspect-[16/10] overflow-hidden">
-        <img
-          src={article.img}
-          alt={article.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute top-3 left-3">
-          <span className="bg-black/80 text-white px-2 py-1 rounded text-xs font-medium">
-            {article.tag}
-          </span>
-        </div>
-        {article.trending && (
-          <div className="absolute top-3 right-3 bg-[#0f4c4c] text-white p-1 rounded">
-            <TrendingUp size={14} />
+// Cache data fetch (deduplicates across generateMetadata + render)
+const getCachedNews = cache(async () => {
+  try {
+    const raw = await fetchCollection("news");
+    return (raw || []).map(serializeArticle);
+  } catch (err) {
+    console.error("[News] Fetch error:", err);
+    return [];
+  }
+});
+
+/* ── SEO: Dynamic Metadata ─────────────────────────────────── */
+export async function generateMetadata(props) {
+  const params = await props.params;
+  const categoryId = params?.id ? decodeURIComponent(params.id) : "होम";
+
+  const title =
+    categoryId === "होम"
+      ? "सभी ताज़ा खबरें — Hmar Duniya"
+      : `${categoryId} — ताज़ा खबरें और अपडेट | Hmar Duniya`;
+
+  const description =
+    categoryId === "होम"
+      ? "Hmar Duniya पर पढ़ें सभी ताज़ा ख़बरें — राजनीति, खेल, टेक, मनोरंजन और बहुत कुछ।"
+      : `${categoryId} की ताज़ा खबरें और अपडेट — Hmar Duniya पर पढ़ें।`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${SITE_URL}/news/${encodeURIComponent(categoryId)}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}/news/${encodeURIComponent(categoryId)}`,
+      siteName: "Hmar Duniya",
+      locale: "hi_IN",
+      type: "website",
+    },
+  };
+}
+
+/* ── Helpers ────────────────────────────────────────────────── */
+function serializeArticle(item) {
+  let createdAtStr = null;
+  if (item.createdAt && typeof item.createdAt.toDate === "function") {
+    createdAtStr = item.createdAt.toDate().toISOString();
+  } else if (item.time) {
+    const d = new Date(item.time);
+    if (!isNaN(d.getTime())) createdAtStr = d.toISOString();
+  }
+  return { ...item, createdAt: createdAtStr, time: createdAtStr };
+}
+
+function formatDate(iso) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("hi-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+/* ── Icons (inline, no external deps) ──────────────────────── */
+const SearchIcon = () => (
+  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const ChevronLeftIcon = () => (
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 6 15 12 9 18" />
+  </svg>
+);
+
+/* ── Pagination URL Builder ────────────────────────────────── */
+function buildUrl(category, page, q) {
+  const catPath = encodeURIComponent(category || "होम");
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (page && page > 1) params.set("page", String(page));
+  const qs = params.toString();
+  return `/news/${catPath}${qs ? `?${qs}` : ""}`;
+}
+
+/* ── Article Card ──────────────────────────────────────────── */
+const ArticleCard = ({ article }) => (
+  <Link
+    href={`/Read-full-news/${article.slug}`}
+    className="article-card group"
+  >
+    <div className="card-image">
+      <img src={article.img} alt={article.title} loading="lazy" />
+      <span className="card-tag">{article.tag}</span>
+    </div>
+    <div className="card-body">
+      <h3 className="card-title">{article.title}</h3>
+      <p className="card-excerpt">{article.excerpt}</p>
+      <div className="card-meta">
+        <div className="card-author">
+          {article.avatar && (
+            <img src={article.avatar} alt={article.author} />
+          )}
+          <div>
+            <div style={{ color: "var(--text-primary)", fontSize: "0.8125rem", fontWeight: 500 }}>
+              {article.author}
+            </div>
+            <div style={{ fontSize: "0.6875rem", color: "var(--text-muted)" }}>
+              {formatDate(article.createdAt)}
+            </div>
           </div>
-        )}
+        </div>
+        <span className="card-cta">पूरा पढ़ें →</span>
       </div>
+    </div>
+  </Link>
+);
 
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
-          {article.title}
-        </h3>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-          {article.excerpt}
-        </p>
-
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-          <div className="flex items-center gap-1">
-            <User size={12} />
-            <span>{article.author}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock size={12} />
-            <span>{article.time}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">
-            {article.readMinutes} min read
-          </span>
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            <Eye size={12} />
-            {article.views}
-          </span>
-        </div>
-
-        <Link
-          href={`/Read-full-news/${article.slug}`}
-          className="w-full mt-3 block bg-[#0f4c4c] text-white py-2 rounded text-sm font-medium text-center hover:opacity-95 transition-all"
-        >
-          पूरा पढ़ें
-        </Link>
-      </div>
-    </article>
-  );
-};
-
+/* ── Featured Hero Card ────────────────────────────────────── */
 const FeaturedArticle = ({ article }) => {
   if (!article) return null;
   return (
-    <article className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="relative aspect-[4/3] md:aspect-auto">
-          <img
-            src={article.img}
-            alt={article.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute top-4 left-4">
-            <span className="bg-[#0f4c4c] text-white px-3 py-1 rounded text-sm font-medium">
+    <Link
+      href={`/Read-full-news/${article.slug}`}
+      className="group block rounded-2xl overflow-hidden mb-8 relative"
+      style={{ background: "var(--bg-muted)", minHeight: "320px" }}
+    >
+      <img
+        src={article.img}
+        alt={article.title}
+        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      />
+      <div
+        className="absolute inset-0 flex items-end"
+        style={{
+          background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)",
+        }}
+      >
+        <div className="p-5 sm:p-8 w-full max-w-3xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span
+              className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+              style={{ background: "var(--brand-accent)", color: "white" }}
+            >
               {article.tag}
             </span>
+            <span className="text-white/60 text-xs font-medium flex items-center gap-1">
+              <ClockIcon />
+              {formatDate(article.createdAt)}
+            </span>
           </div>
-        </div>
-
-        <div className="p-6">
-          <div className="flex items-center gap-2 text-sm text-[#0f4c4c] font-medium mb-4">
-            <div className="w-2 h-2 bg-[#0f4c4c] rounded-full animate-pulse" />
-            मुख्य खबर
-          </div>
-
-          <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
+          <h2
+            className="text-xl sm:text-3xl md:text-4xl font-extrabold leading-tight line-clamp-2 text-white"
+            style={{ fontFamily: "var(--font-hindi)" }}
+          >
             {article.title}
           </h2>
-          <p className="text-gray-600 mb-6 leading-relaxed">
+          <p className="text-sm sm:text-base mt-3 line-clamp-2 text-white/75 max-w-2xl">
             {article.excerpt}
           </p>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mt-4">
+            {article.avatar && (
               <img
                 src={article.avatar}
                 alt={article.author}
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 rounded-full object-cover border-2 border-white/30"
               />
-              <div>
-                <div className="text-sm font-medium text-gray-900">
-                  {article.author}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Clock size={12} />
-                  {article.time}
-                </div>
-              </div>
-            </div>
-            <Link
-              href={`/article/${article.id}`}
-              className="bg-[#0f4c4c] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-95 transition-all"
-            >
-              पढ़ें
-            </Link>
+            )}
+            <span className="text-white/90 text-sm font-medium">{article.author}</span>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 };
 
-/* -------- Pagination helper (client-side links) -------- */
-const buildUrl = ({ category, q, page }) => {
-  const categoryPath =
-    category && category !== "होम" ? encodeURIComponent(category) : "होम";
-  const params = new URLSearchParams();
-  if (q) params.set("q", q);
-  if (page) params.set("page", String(page));
-  const qs = params.toString();
-  return `/news/${categoryPath}${qs ? `?${qs}` : ""}`;
-};
-
-const PaginationBlock = ({ currentPage, totalPages, category, q }) => {
+/* ── Pagination ────────────────────────────────────────────── */
+const Pagination = ({ currentPage, totalPages, category, q }) => {
   if (totalPages <= 1) return null;
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const startPage = Math.max(1, currentPage - PAGINATION_RANGE);
-    const endPage = Math.min(totalPages, currentPage + PAGINATION_RANGE);
-    for (let i = startPage; i <= endPage; i++) pages.push(i);
-    return pages;
-  };
-
-  const pages = getPageNumbers();
+  const pages = [];
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  for (let i = start; i <= end; i++) pages.push(i);
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-8">
+    <nav className="flex items-center justify-center gap-1.5 mt-10" aria-label="Pagination">
       <Link
-        href={buildUrl({ category, q, page: Math.max(1, currentPage - 1) })}
-        className={`flex items-center gap-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-          currentPage === 1
-            ? "text-gray-400 pointer-events-none"
-            : "text-gray-700 hover:bg-gray-100"
+        href={buildUrl(category, Math.max(1, currentPage - 1), q)}
+        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          currentPage === 1 ? "pointer-events-none opacity-40" : "hover:bg-gray-100"
         }`}
+        style={{ color: "var(--text-secondary)" }}
       >
-        <ChevronLeft size={16} />
-        पिछला
+        <ChevronLeftIcon /> पिछला
       </Link>
 
-      {currentPage > PAGINATION_RANGE + 1 && (
+      {start > 1 && (
         <>
-          <Link
-            href={buildUrl({ category, q, page: 1 })}
-            className="px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            1
-          </Link>
-          {currentPage > PAGINATION_RANGE + 2 && (
-            <span className="px-2 text-gray-400">...</span>
-          )}
+          <Link href={buildUrl(category, 1, q)} className="px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-100" style={{ color: "var(--text-secondary)" }}>1</Link>
+          {start > 2 && <span className="px-1" style={{ color: "var(--text-muted)" }}>…</span>}
         </>
       )}
 
       {pages.map((p) => (
         <Link
           key={p}
-          href={buildUrl({ category, q, page: p })}
-          className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-            p === currentPage
-              ? "bg-[#0f4c4c] text-white"
-              : "text-gray-700 hover:bg-gray-100"
+          href={buildUrl(category, p, q)}
+          className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            p === currentPage ? "" : "hover:bg-gray-100"
           }`}
+          style={
+            p === currentPage
+              ? { background: "var(--brand-primary)", color: "white" }
+              : { color: "var(--text-secondary)" }
+          }
+          aria-current={p === currentPage ? "page" : undefined}
         >
           {p}
         </Link>
       ))}
 
-      {currentPage < totalPages - PAGINATION_RANGE && (
+      {end < totalPages && (
         <>
-          {currentPage < totalPages - PAGINATION_RANGE - 1 && (
-            <span className="px-2 text-gray-400">...</span>
-          )}
-          <Link
-            href={buildUrl({ category, q, page: totalPages })}
-            className="px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            {totalPages}
-          </Link>
+          {end < totalPages - 1 && <span className="px-1" style={{ color: "var(--text-muted)" }}>…</span>}
+          <Link href={buildUrl(category, totalPages, q)} className="px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-100" style={{ color: "var(--text-secondary)" }}>{totalPages}</Link>
         </>
       )}
 
       <Link
-        href={buildUrl({
-          category,
-          q,
-          page: Math.min(totalPages, currentPage + 1),
-        })}
-        className={`flex items-center gap-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-          currentPage === totalPages
-            ? "text-gray-400 pointer-events-none"
-            : "text-gray-700 hover:bg-gray-100"
+        href={buildUrl(category, Math.min(totalPages, currentPage + 1), q)}
+        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          currentPage === totalPages ? "pointer-events-none opacity-40" : "hover:bg-gray-100"
         }`}
+        style={{ color: "var(--text-secondary)" }}
       >
-        अगला
-        <ChevronRight size={16} />
+        अगला <ChevronRightIcon />
       </Link>
-    </div>
+    </nav>
   );
 };
 
-/* ------------------- Main client page ------------------- */
-export default function CategoryNewsPage() {
-  // client hooks for route + query
-  const params = useParams(); // returns { id: '...' } in client components
-  const searchParams = useSearchParams(); // URLSearchParams-like
-  const router = useRouter();
+/* ═══════════════════════════════════════════════════════════════ */
+/* ─── MAIN SERVER PAGE ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════ */
+export default async function CategoryNewsPage(props) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
 
-  const [SAMPLE_ARTICLES, setSAMPLE_ARTICLES] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const categoryId = params?.id ? decodeURIComponent(params.id) : "होम";
+  const q = (searchParams?.q ?? "").trim();
+  const pageParam = parseInt(searchParams?.page ?? "1", 10);
+  const currentPage = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
 
-  // load data on client
-  useEffect(() => {
-    let mounted = true;
+  /* ── Fetch data SERVER-SIDE (cached + deduplicated) ── */
+  const allArticles = await getCachedNews();
 
-    async function load() {
-      try {
-        setLoading(true);
-        setError(null);
-        const items = await fetchCollection("news");
-        if (!mounted) return;
-        setSAMPLE_ARTICLES(items ?? []);
-      } catch (err) {
-        if (!mounted) return;
-        setError(err);
-      } finally {
-        if (!mounted) return;
-        setLoading(false);
-      }
-    }
+  /* ── Category list ── */
+  const allTags = allArticles.map((a) => a.tag).filter(Boolean);
+  const categories = ["होम", ...Array.from(new Set(allTags))];
 
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  /* ── Filter ── */
+  let filtered = allArticles;
+  if (categoryId && categoryId !== "होम") {
+    filtered = filtered.filter((a) => a.tag === categoryId);
+  }
+  if (q) {
+    const lower = q.toLowerCase();
+    filtered = filtered.filter(
+      (a) =>
+        (a.title || "").toLowerCase().includes(lower) ||
+        (a.excerpt || "").toLowerCase().includes(lower)
+    );
+  }
 
-  // category from route params
-  const categoryId = params?.id ?? null;
-  const currentCategory = categoryId ? decodeURIComponent(categoryId) : "होम";
-
-  // query params via useSearchParams()
-  const q = (searchParams?.get("q") ?? "").trim();
-  const pageParamRaw = searchParams?.get("page") ?? "1";
-  const pageParam = parseInt(pageParamRaw, 10);
-  const currentPage = Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
-
-  // categories list (depending on loaded articles)
-  const categories = useMemo(() => {
-    const all = SAMPLE_ARTICLES.map((a) => a.tag).filter(Boolean);
-    return ["होम", ...Array.from(new Set(all))];
-  }, [SAMPLE_ARTICLES]);
-
-  // filter articles by category and search
-  const filtered = useMemo(() => {
-    let arr = SAMPLE_ARTICLES || [];
-    if (categoryId && currentCategory !== "होम") {
-      arr = arr.filter((a) => a.tag === currentCategory);
-    }
-    if (q) {
-      const lower = q.toLowerCase();
-      arr = arr.filter(
-        (a) =>
-          (a.title || "").toLowerCase().includes(lower) ||
-          (a.excerpt || "").toLowerCase().includes(lower) ||
-          (a.author || "").toLowerCase().includes(lower) ||
-          (a.tag || "").toLowerCase().includes(lower)
-      );
-    }
-    return arr;
-  }, [SAMPLE_ARTICLES, categoryId, currentCategory, q]);
-
-  const featuredArticle = filtered.find((a) => a.featured);
-  const regularArticles = filtered.filter((a) => !a.featured);
-
+  /* ── Pagination ── */
+  const featuredArticle = currentPage === 1 && !q ? filtered[0] : null;
+  const regularArticles = featuredArticle ? filtered.slice(1) : filtered;
   const totalPages = Math.max(1, Math.ceil(regularArticles.length / PAGE_SIZE));
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const paginatedRegularArticles = regularArticles.slice(startIndex, endIndex);
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * PAGE_SIZE;
+  const paginatedArticles = regularArticles.slice(startIdx, startIdx + PAGE_SIZE);
 
-  const displayedCount =
-    (featuredArticle && currentPage === 1 ? 1 : 0) +
-    paginatedRegularArticles.length;
-
-  // loading / error states
-  if (loading) return <ProfessionalLoader />;
-  if (error) return <div>Error: {error.message || String(error)}</div>;
+  /* ── Breadcrumb JSON-LD ── */
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "होम", item: SITE_URL },
+      ...(categoryId !== "होम"
+        ? [{ "@type": "ListItem", position: 2, name: categoryId, item: `${SITE_URL}/news/${encodeURIComponent(categoryId)}` }]
+        : []),
+    ],
+  };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header (small back button) */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 font-['Noto_Sans_Devanagari']">
-                समाचार
-              </h1>
-              <p className="text-gray-600 text-sm">ताज़ा खबरें और अपडेट</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar size={16} />
-              <span>{new Date().toLocaleDateString("hi-IN")}</span>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div style={{ fontFamily: "var(--font-latin)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        {currentCategory !== "होम" && (
-          <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-            <Link
-              href="/news"
-              className="flex items-center gap-1 hover:text-[#0f4c4c] transition-colors"
-            >
-              <Home size={16} />
-              होम
-            </Link>
+      {/* ─── Page Header ─── */}
+      <div style={{ background: "var(--brand-primary)" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm mb-4" style={{ color: "rgba(255,255,255,0.6)" }} aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-white transition-colors">होम पेज</Link>
             <span>/</span>
-            <span className="text-gray-900 font-medium">{currentCategory}</span>
+            <span className="text-white font-medium">
+              {categoryId === "होम" ? "सभी समाचार" : categoryId}
+            </span>
           </nav>
-        )}
 
-        {/* Search form (client handled) */}
+          <h1
+            className="text-2xl sm:text-4xl font-extrabold text-white"
+            style={{ fontFamily: "var(--font-hindi)" }}
+          >
+            {categoryId === "होम" ? "📰 सभी समाचार" : categoryId}
+          </h1>
+          <p className="text-sm sm:text-base mt-2" style={{ color: "rgba(255,255,255,0.7)" }}>
+            {filtered.length} {q ? `"${q}" के लिए` : ""} लेख उपलब्ध
+          </p>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        {/* ─── Search Bar ─── */}
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const form = e.currentTarget;
-            const formData = new FormData(form);
-            const newQ = formData.get("q") ?? "";
-            // navigate keeping category path
-            router.push(
-              buildUrl({
-                category: currentCategory,
-                q: String(newQ).trim(),
-                page: 1,
-              })
-            );
-          }}
-          className="relative mb-8"
+          action={`/news/${encodeURIComponent(categoryId)}`}
+          method="GET"
+          className="mb-6"
         >
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="खबरें खोजें..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f4c4c] focus:border-[#0f4c4c]"
-          />
+          <div className="relative">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
+              <SearchIcon />
+            </div>
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="खबरें खोजें…"
+              className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm font-medium transition-shadow duration-200 focus:ring-2 focus:ring-offset-1"
+              style={{
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                color: "var(--text-primary)",
+                outline: "none",
+                boxShadow: "var(--shadow-card)",
+              }}
+            />
+          </div>
         </form>
 
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        {/* ─── Category Pills ─── */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 hide-scrollbar">
           {categories.map((cat) => (
             <Link
               key={cat}
-              href={buildUrl({ category: cat, q, page: 1 })}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                cat === currentCategory
-                  ? "bg-[#0f4c4c] text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              href={buildUrl(cat, 1, "")}
+              className="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0"
+              style={
+                cat === categoryId
+                  ? {
+                      background: "var(--brand-primary)",
+                      color: "white",
+                      boxShadow: "0 2px 10px rgba(13,79,79,0.35)",
+                    }
+                  : {
+                      background: "var(--bg-card)",
+                      color: "var(--text-secondary)",
+                      border: "1px solid var(--border-light)",
+                    }
+              }
             >
-              {cat}
+              {cat === "होम" ? "🏠 सभी" : cat}
             </Link>
           ))}
         </div>
 
-        {/* Results info */}
-        <div className="mb-6">
-          <p className="text-gray-600 text-sm">
-            पृष्ठ {currentPage} का {totalPages} - {displayedCount} दिखाए जा रहे
-            / कुल {filtered.length} लेख
-            {q && ` — "${q}" के लिए`}
-            {currentCategory !== "सभी" && ` — श्रेणी: ${currentCategory}`}
-          </p>
-        </div>
+        {/* ─── Featured Article (page 1 only) ─── */}
+        {featuredArticle && <FeaturedArticle article={featuredArticle} />}
 
-        {/* Featured */}
-        {featuredArticle && currentPage === 1 && (
-          <FeaturedArticle article={featuredArticle} />
-        )}
-
-        {/* Grid */}
+        {/* ─── Articles Grid ─── */}
         {filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="text-center py-20">
+            <div className="text-5xl mb-4">🔍</div>
+            <h3
+              className="text-xl font-bold mb-2"
+              style={{ fontFamily: "var(--font-hindi)", color: "var(--text-primary)" }}
+            >
               कोई लेख नहीं मिला
             </h3>
-            <p className="text-gray-600 text-sm mb-4">
-              {q
-                ? `"${q}" के लिए कोई परिणाम नहीं मिले।`
-                : "कृपया अलग श्रेणी चुनें।"}
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+              {q ? `"${q}" के लिए कोई परिणाम नहीं।` : "इस श्रेणी में अभी कोई लेख नहीं है।"}
             </p>
             <Link
-              href="/news"
-              className="bg-[#0f4c4c] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-95 transition-all"
+              href="/news/होम"
+              className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold transition-opacity hover:opacity-90"
+              style={{ background: "var(--brand-primary)", color: "white" }}
             >
-              सभी खबरें देखें
+              सभी खबरें देखें →
             </Link>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedRegularArticles.map((article) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {paginatedArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>
-
-            <PaginationBlock
-              currentPage={currentPage}
-              totalPages={totalPages}
-              category={currentCategory}
-              q={q}
-            />
+            <Pagination currentPage={safePage} totalPages={totalPages} category={categoryId} q={q} />
           </>
         )}
 
-        {/* Newsletter */}
-        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 mt-12">
-          <div className="flex items-center gap-3 mb-3">
-            <Mail className="text-[#0f4c4c] w-5 h-5" />
-            <h3 className="font-semibold text-gray-900">
-              न्यूज़लेटर सब्सक्राइब करें
-            </h3>
-          </div>
-          <p className="text-gray-600 text-sm mb-4">
-            दिन की शीर्ष कहानियां अपने इनबॉक्स में प्राप्त करें।
+        {/* ─── Page Info ─── */}
+        {totalPages > 1 && (
+          <p className="text-center text-xs mt-4" style={{ color: "var(--text-muted)" }}>
+            पृष्ठ {safePage} / {totalPages}
           </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // handle subscribe action client-side or call an API
-              alert("धन्यवाद! आप सब्सक्राइब हो चुके हैं।");
-            }}
-            className="flex gap-2"
-          >
-            <input
-              type="email"
-              name="email"
-              placeholder="आपका ईमेल पता"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4c4c]"
-              required
-            />
-            <button
-              type="submit"
-              className="bg-[#0f4c4c] text-white px-4 py-2 rounded text-sm font-medium hover:opacity-95 transition-all"
-            >
-              सब्सक्राइब
-            </button>
-          </form>
-        </div>
+        )}
       </main>
+
+      <Footer />
     </div>
   );
 }

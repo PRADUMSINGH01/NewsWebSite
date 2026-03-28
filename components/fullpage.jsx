@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ShareButtons from "./ShareButton";
+import ViewCounter from "./ViewCounter";
 import { usePathname } from "next/navigation";
 
 /* ─── Hindi months ──────────────────────────────────────────── */
@@ -158,7 +159,7 @@ const ArticleCard = ({ article }) => (
 /* ─── Main Component ─────────────────────────────────────────── */
 function rand0to5() { return Math.floor(Math.random() * 6); }
 
-export default function SimpleNewsPost({ post: rawPost = {} }) {
+export default function SimpleNewsPost({ post: rawPost = {}, relatedArticles = [] }) {
   const post = normalizePost(rawPost);
   const dateLabel = formatDateLabel(post);
   const title = post?.title || "शीर्षक उपलब्ध नहीं";
@@ -174,31 +175,11 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
   const ogImageUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}`;
   const articleUrl = `https://www.hmarduniya.in${pathname}`;
 
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Use server-provided related articles instead of client-side fetch
+  const data = relatedArticles;
 
   const renStart = Math.max(0, Math.min(rand0to5(), Math.max(0, data.length - 4)));
   const renEnd = Math.min(data.length, renStart + 4);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { fetchCollection } = await import("./server/fetchnews");
-        const items = await fetchCollection("news");
-        if (mounted) setData(Array.isArray(items) ? items : []);
-      } catch (err) {
-        if (mounted) setError(err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  if (error)
-    return <div className="p-6 text-red-500 text-center">कुछ गड़बड़ हो गई। ({error.message})</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-['Noto_Sans_Devanagari']">
@@ -245,7 +226,7 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                 </p>
               )}
 
-              {/* Author + Date row */}
+              {/* Author + Date + Views row */}
               <div className="flex items-center justify-between flex-wrap gap-3 py-4 border-t border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <img
@@ -255,14 +236,18 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
                   />
                   <div>
                     <p className="text-sm font-bold text-gray-900 leading-tight">{author}</p>
-                    {dateLabel && (
-                      <time
-                        className="text-xs text-gray-400 font-medium"
-                        dateTime={post?.createdAt ? new Date(post.createdAt).toISOString() : ""}
-                      >
-                        {dateLabel}
-                      </time>
-                    )}
+                    <div className="flex items-center gap-3 mt-0.5">
+                      {dateLabel && (
+                        <time
+                          className="text-xs text-gray-400 font-medium"
+                          dateTime={post?.createdAt ? new Date(post.createdAt).toISOString() : ""}
+                        >
+                          {dateLabel}
+                        </time>
+                      )}
+                      <span className="text-gray-300">•</span>
+                      <ViewCounter slug={post?.slug} size="sm" showLabel={true} />
+                    </div>
                   </div>
                 </div>
 
@@ -357,25 +342,11 @@ export default function SimpleNewsPost({ post: rawPost = {} }) {
             और खबरें पढ़ें
           </h2>
 
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="flex sm:flex-col gap-3 sm:gap-0 rounded-xl overflow-hidden bg-white border border-gray-100 animate-pulse">
-                  <div className="w-28 h-24 sm:w-full sm:h-40 bg-gray-200 shrink-0" />
-                  <div className="p-3 w-full flex flex-col justify-center space-y-3">
-                    <div className="h-3 bg-gray-200 rounded w-full" />
-                    <div className="h-3 bg-gray-200 rounded w-2/3" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-              {data.slice(renStart, renEnd).map((a) => (
-                <ArticleCard key={a.id || a.slug || a.title} article={a} />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+            {data.slice(renStart, renEnd).map((a) => (
+              <ArticleCard key={a.id || a.slug || a.title} article={a} />
+            ))}
+          </div>
         </section>
 
       </main>

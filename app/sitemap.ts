@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { fetchCollection } from "@/components/server/fetchnews";
 
 export const revalidate = 86400; // 24 hours
-const BASE_URL = "https://hmarduniya.in";
+const BASE_URL = "https://www.hmarduniya.in";
 
 /** Possible Firestore-like timestamp shape (client / serialized) */
 interface FirestoreTimestampLike {

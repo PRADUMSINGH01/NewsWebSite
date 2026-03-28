@@ -1,8 +1,17 @@
 // app/layout.jsx
 import "./globals.css";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
 import ThemeProvider from "@/components/ThemeProvider";
+
+// Premium Latin font — sharp, modern, highly readable
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 const SITE_URL = "https://www.hmarduniya.in";
 const SITE_NAME = "Hmar Duniya";
@@ -78,14 +87,18 @@ const organizationJsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="hi">
+    <html lang="hi" className={inter.variable}>
       <head>
-        {/* Google Fonts preconnect for Noto Sans Devanagari performance */}
+        {/* Google Fonts: Noto Sans Devanagari for Hindi text */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
         />
         {/* Organization structured data */}
         <script
@@ -95,10 +108,10 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body>
+      <body className="font-sans antialiased">
         <ThemeProvider>
           <Header />
-          <main className="container mx-auto px-4 py-6">{children}</main>
+          {children}
           <Analytics />
         </ThemeProvider>
       </body>

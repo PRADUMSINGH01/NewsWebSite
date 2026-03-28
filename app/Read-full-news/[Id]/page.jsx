@@ -1,5 +1,5 @@
 // app/(routes)/articles/[Id]/page.jsx
-import { getBySlugClient } from "@/components/server/fetchnews";
+import { getBySlugClient, fetchCollection } from "@/components/server/fetchnews";
 import SimpleNewsPost from "@/components/fullpage";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -26,6 +26,37 @@ function safeDecode(str) {
 // Memoize the data fetch so it's only executed once per request
 const getPost = cache(async (slug) => {
   return await getBySlugClient(slug);
+});
+
+// Server-side fetch for related articles (replaces client-side useEffect in fullpage.jsx)
+const getRelatedArticles = cache(async () => {
+  try {
+    const rawData = await fetchCollection("news");
+    // Serialize Firebase Timestamps to plain strings for client component consumption
+    return (rawData || []).map(item => {
+      let createdAtStr = null;
+      if (item.createdAt && typeof item.createdAt.toDate === "function") {
+        createdAtStr = item.createdAt.toDate().toISOString();
+      } else if (item.time) {
+        createdAtStr = new Date(item.time).toISOString();
+      }
+      return {
+        id: item.id,
+        title: item.title || "",
+        slug: item.slug || "",
+        img: item.img || "",
+        tag: item.tag || "",
+        excerpt: item.excerpt || "",
+        author: item.author || "",
+        avatar: item.avatar || "",
+        createdAt: createdAtStr,
+        time: createdAtStr,
+      };
+    });
+  } catch (err) {
+    console.error("Error fetching related articles:", err);
+    return [];
+  }
 });
 
 /** Safely parse a date from post data */
@@ -177,13 +208,13 @@ export default async function Page(props) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Pass serialized post to Client Component */}
+        {/* Pass serialized post + server-fetched related articles to Client Component */}
         <SimpleNewsPost post={{
           ...postData,
           id: post.id || postData.id,
           createdAt: datePublished,
           time: datePublished
-        }} />
+        }} relatedArticles={await getRelatedArticles()} />
       </>
     );
   } catch (err) {
