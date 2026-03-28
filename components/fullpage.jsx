@@ -240,9 +240,9 @@ export default function SimpleNewsPost({ post: rawPost = {}, relatedArticles = [
   const SITE_URL = typeof window !== "undefined"
     ? window.location.origin
     : "https://www.hmarduniya.in";
-  const ogImageUrl = post?.slug 
-    ? `${SITE_URL}/Read-full-news/${post.slug}/opengraph-image` 
-    : `${SITE_URL}${pathname}/opengraph-image`;
+  const ogImageUrl = post?.img
+    ? (post.img.startsWith('http') ? post.img : `${SITE_URL}${post.img.startsWith('/') ? '' : '/'}${post.img}`)
+    : `${SITE_URL}/logo.png`;
   const articleUrl = `https://www.hmarduniya.in${pathname}`;
 
   // Use server-provided related articles instead of client-side fetch

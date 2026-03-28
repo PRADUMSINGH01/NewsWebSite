@@ -102,8 +102,8 @@ export async function generateMetadata(props) {
     const author = postData?.author || SITE_NAME;
     const datePublished = getDateISO(postData);
     
-    // Specifically define dynamic open graph URL for social media fallback (such as strict twitter cards)
-    const ogImageUrl = `${SITE_URL}/Read-full-news/${decodedSlug}/opengraph-image`;
+    // Direct raw image linking to prevent Next.js Edge Runtime Firebase failures
+    const articleMainImage = resolveImageUrl(postData?.img);
 
     return {
       title: title,
@@ -120,12 +120,20 @@ export async function generateMetadata(props) {
         type: "article",
         publishedTime: datePublished,
         authors: [author],
+        images: [
+          {
+            url: articleMainImage,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: title,
         description: excerpt,
-        images: [ogImageUrl],
+        images: [articleMainImage],
       }, 
     };
   } catch (err) {
