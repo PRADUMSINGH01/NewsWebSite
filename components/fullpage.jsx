@@ -54,6 +54,32 @@ function formatDateLabel(post) {
 
 /* ─── Content renderer ───────────────────────────────────────── */
 function renderContentArray(arr) {
+  if (!arr)
+    return (
+      <p className="mb-5 text-gray-600 italic">
+        पूरा लेख प्रकाशित होते ही यहाँ दिखेगा।
+      </p>
+    );
+
+  // If the content is a simple string instead of an array of blocks
+  if (typeof arr === "string") {
+    if (arr.trim().startsWith("<")) {
+      return (
+        <div
+          className="html-content prose max-w-none text-gray-800 leading-[1.9] text-[17px] sm:text-[18px]"
+          dangerouslySetInnerHTML={{ __html: arr }}
+        />
+      );
+    }
+    return arr.split("\n").map((line, idx) =>
+      line.trim() ? (
+        <p key={idx} className="mb-5 text-gray-800 leading-[1.9] text-[17px] sm:text-[18px]">
+          {line}
+        </p>
+      ) : null
+    );
+  }
+
   if (!Array.isArray(arr) || arr.length === 0)
     return (
       <p className="mb-5 text-gray-600 italic">
@@ -72,8 +98,35 @@ function renderContentArray(arr) {
         </p>
       );
 
-    if (!block) return null;
-
+    // ---- Handle NewsBoard Section Builder schema ----
+    // A single block might contain any combination of subheading, paragraph, and image.
+    if (block.subheading || block.paragraph || block.image) {
+      return (
+        <div key={idx} className="mb-8">
+          {block.subheading && (
+            <h2 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900 leading-snug">
+              {block.subheading}
+            </h2>
+          )}
+          {block.paragraph && (
+            <p className="mb-5 text-gray-800 leading-[1.9] text-[17px] sm:text-[18px]">
+              {block.paragraph}
+            </p>
+          )}
+          {block.image && (
+            <figure className="-mx-4 sm:mx-0 mt-5">
+              <img
+                src={block.image}
+                alt={block.subheading || "लेख चित्र"}
+                className="w-full sm:rounded-xl object-cover max-h-[400px]"
+              />
+            </figure>
+          )}
+        </div>
+      );
+    }
+    
+    // Fallback for legacy block formats (with explicit types)
     if (block.type === "subheading")
       return (
         <h2 key={idx} className="text-xl sm:text-2xl font-bold mb-3 mt-8 text-gray-900 leading-snug">
@@ -81,10 +134,10 @@ function renderContentArray(arr) {
         </h2>
       );
 
-    if (block.text || block.paragraph)
+    if (block.text)
       return (
         <p key={idx} className="mb-5 text-gray-800 leading-[1.9] text-[17px] sm:text-[18px]">
-          {block.text || block.paragraph}
+          {block.text}
         </p>
       );
 
@@ -115,10 +168,25 @@ function renderContentArray(arr) {
         </ul>
       );
 
+    // Handle common raw HTML blocks from rich text editors
+    if (block.html || block.contentHtml) {
+      return <div key={idx} dangerouslySetInnerHTML={{ __html: block.html || block.contentHtml }} className="mb-5 prose max-w-none text-gray-800 leading-[1.9] text-[17px] sm:text-[18px]" />;
+    }
+
+    // Handle data.text for generic block editors
+    if (block.data?.text || block.data?.paragraph) {
+      return (
+        <p key={idx} className="mb-5 text-gray-800 leading-[1.9] text-[17px] sm:text-[18px]">
+          {block.data.text || block.data.paragraph}
+        </p>
+      );
+    }
+
+    // Default Fallback
     return (
-      <p key={idx} className="mb-5 text-gray-800 leading-relaxed">
-        {block.toString ? block.toString() : JSON.stringify(block)}
-      </p>
+      <div key={idx} className="hidden">
+        {/* Silently hide completely unrecognized blocks rather than showing JSON on production */}
+      </div>
     );
   });
 }
@@ -172,7 +240,9 @@ export default function SimpleNewsPost({ post: rawPost = {}, relatedArticles = [
   const SITE_URL = typeof window !== "undefined"
     ? window.location.origin
     : "https://www.hmarduniya.in";
-  const ogImageUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}`;
+  const ogImageUrl = post?.slug 
+    ? `${SITE_URL}/Read-full-news/${post.slug}/opengraph-image` 
+    : `${SITE_URL}${pathname}/opengraph-image`;
   const articleUrl = `https://www.hmarduniya.in${pathname}`;
 
   // Use server-provided related articles instead of client-side fetch
@@ -261,7 +331,11 @@ export default function SimpleNewsPost({ post: rawPost = {}, relatedArticles = [
             {/* ── Article Body ── */}
             <div className="px-4 pt-5 pb-8 sm:px-6 md:px-10">
               <div className="max-w-none">
-                {renderContentArray(post?.content || post?.content?.blocks || [])}
+                {renderContentArray(
+                  (post?.sections && post.sections.length > 0)
+                    ? post.sections
+                    : post?.content || post?.content?.blocks || []
+                )}
               </div>
 
               {/* ── Article Footer: Tags + Share ── */}

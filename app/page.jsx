@@ -4,12 +4,12 @@ import Link from "next/link";
 import { fetchCollection } from "@/components/server/fetchnews";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
+import Icon from "@/app/icon";
+// ── ISR: Disabled for development ──
+export const revalidate = 0;
 
-// ── ISR: Rebuild page every 5 minutes (300s) instead of every request ──
-export const revalidate = 300;
-
-// ── Cache data fetching (deduplicates across generateMetadata + page render) ──
-const getCachedNews = cache(async () => {
+// ── Data fetching ──
+const getCachedNews = async () => {
   try {
     const raw = await fetchCollection("news");
     return (raw || []).map((item) => {
@@ -26,16 +26,16 @@ const getCachedNews = cache(async () => {
     console.error("[Home] Failed to fetch news:", err);
     return [];
   }
-});
+};
 
-const getCachedTicker = cache(async () => {
+const getCachedTicker = async () => {
   try {
     const raw = await fetchCollection("ticker");
     return raw.map((t) => t.title).filter(Boolean);
   } catch {
     return [];
   }
-});
+};
 
 /* ── Helper ── */
 function formatDate(iso) {

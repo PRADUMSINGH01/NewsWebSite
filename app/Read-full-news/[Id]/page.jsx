@@ -69,7 +69,7 @@ function getDateISO(postData) {
       const d = new Date(postData.time);
       if (!isNaN(d.getTime())) return d.toISOString();
     }
-  } catch {}
+  } catch { }
   return new Date().toISOString();
 }
 
@@ -102,8 +102,6 @@ export async function generateMetadata(props) {
     const author = postData?.author || SITE_NAME;
     const datePublished = getDateISO(postData);
 
-    const ogImageUrl = `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&tag=${encodeURIComponent(tag)}`;
-
     return {
       title: title,
       description: excerpt,
@@ -119,20 +117,11 @@ export async function generateMetadata(props) {
         type: "article",
         publishedTime: datePublished,
         authors: [author],
-        images: [
-          {
-            url: ogImageUrl,
-            width: 1200,
-            height: 630,
-            alt: title,
-          },
-        ],
       },
       twitter: {
         card: "summary_large_image",
         title: title,
         description: excerpt,
-        images: [ogImageUrl],
       },
     };
   } catch (err) {
