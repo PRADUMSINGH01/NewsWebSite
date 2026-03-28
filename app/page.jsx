@@ -4,7 +4,6 @@ import Link from "next/link";
 import { fetchCollection } from "@/components/server/fetchnews";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
-import Icon from "@/app/icon";
 // ── ISR: Disabled for development ──
 export const revalidate = 0;
 
