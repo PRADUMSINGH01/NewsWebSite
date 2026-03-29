@@ -84,7 +84,7 @@ const ArticleCard = ({ article }) => (
       <p className="card-excerpt">{article.excerpt}</p>
       <div className="card-meta">
         <div className="card-author">
-          {article.avatar && <img src={article.avatar} alt={article.author} />}
+          <img src={article.avatar || "/footer_logo.png"} alt={article.author || "लेखक"} className="w-6 h-6 rounded-full object-cover bg-gray-100" />
           <div>
             <div style={{ color: "var(--text-primary)", fontSize: "0.8125rem", fontWeight: 500 }}>
               {article.author}

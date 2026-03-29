@@ -125,7 +125,7 @@ function renderContentArray(arr) {
         </div>
       );
     }
-    
+
     // Fallback for legacy block formats (with explicit types)
     if (block.type === "subheading")
       return (
@@ -232,7 +232,7 @@ export default function SimpleNewsPost({ post: rawPost = {}, relatedArticles = [
   const dateLabel = formatDateLabel(post);
   const title = post?.title || "शीर्षक उपलब्ध नहीं";
   const excerpt = post?.excerpt || "";
-  const avatar = post?.avatar || "/avatar-placeholder.png";
+  const avatar = post?.avatar || "/footer_logo.png";
   const author = post?.author || "लेखक";
   const tag = post?.tag || "समाचार";
   const pathname = usePathname();
