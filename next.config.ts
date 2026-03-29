@@ -1,15 +1,20 @@
 /** @type {import('next').NextConfig} */
+const path = require('path')
+
 const nextConfig = {
+  turbopack: {
+    root: path.join(__dirname, '..'),
+  },
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.pexels.com",
       },
-      { 
-        protocol: "https", 
-        hostname: "firebasestorage.googleapis.com", 
-        pathname: "/**" 
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/**"
       },
     ],
     // Firebase Storage returns 412 to Next.js image optimization proxy

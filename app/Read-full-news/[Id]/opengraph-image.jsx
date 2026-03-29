@@ -18,7 +18,9 @@ function resolveImageUrl(img) {
   return `${SITE_URL}${img.startsWith("/") ? "" : "/"}${img}`;
 }
 
-export default async function Image({ params }) {
+export default async function Image(props) {
+  const params = await props.params;
+  
   // Extract slug and fetch article
   const rawId = params?.Id || "";
   const slug = Array.isArray(rawId) ? rawId.join("/") : rawId;
@@ -40,6 +42,21 @@ export default async function Image({ params }) {
     console.error("OG Image fetch error:", error);
   }
 
+  let bgImageSrc = null;
+  if (bgImg) {
+    try {
+      // Fetch the remote image as an ArrayBuffer since Next.js Edge runtime prefers ArrayBuffers for Satori images
+      const bgRes = await fetch(bgImg);
+      if (bgRes.ok) {
+        bgImageSrc = await bgRes.arrayBuffer();
+      } else {
+        console.error("Firebase BG Image Fetch Failed in OG route:", bgRes.status);
+      }
+    } catch (err) {
+      console.error("Fetch background image error:", err);
+    }
+  }
+
   // Create the image layout using the main article image as the primary view for ALL
   return new ImageResponse(
     (
@@ -55,9 +72,10 @@ export default async function Image({ params }) {
         }}
       >
         {/* Main image covering the entire OG frame */}
-        <img
-          src={bgImg}
-          alt={title}
+        {bgImageSrc && (
+          <img
+            src={bgImageSrc}
+            alt={title}
           style={{
             position: 'absolute',
             inset: 0,
@@ -66,7 +84,7 @@ export default async function Image({ params }) {
             objectFit: 'cover',
           }}
         />
-
+        )}
         {/* Gradient shadow to make text readable */}
         <div
           style={{
