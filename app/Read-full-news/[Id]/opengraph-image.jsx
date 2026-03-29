@@ -4,10 +4,14 @@ import { getBySlugClient } from "@/components/server/fetchnews";
 // Next.js automatically uses this exact exported metadata for OG images
 export const alt = 'News Article Cover';
 export const size = {
-  width: 1200,
-  height: 630,
+  width: 800,
+  height: 418, // 1.91:1 ratio, strictly optimized for WhatsApp!
 };
 export const contentType = 'image/png';
+
+// Aggressive caching and edge runtime so WhatsApp doesn't timeout!
+export const runtime = 'edge';
+export const revalidate = 86400; // Cache for 24 hours
 
 // Fallback logic for absolute URLs
 function resolveImageUrl(img) {

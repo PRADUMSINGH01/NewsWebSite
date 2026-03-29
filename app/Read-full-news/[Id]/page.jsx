@@ -120,11 +120,20 @@ export async function generateMetadata(props) {
         type: "article",
         publishedTime: datePublished,
         authors: [author],
+        images: [
+          {
+            url: `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&url=${encodeURIComponent(articleMainImage)}`,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: title,
         description: excerpt,
+        images: [`${SITE_URL}/api/og?title=${encodeURIComponent(title)}&url=${encodeURIComponent(articleMainImage)}`],
       }, 
     };
   } catch (err) {

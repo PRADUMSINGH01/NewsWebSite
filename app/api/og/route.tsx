@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
+export const revalidate = 86400; // Cache aggressively on Vercel CDN for 24h
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,38 +49,63 @@ export async function GET(request: NextRequest) {
               alt="Background"
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
+                inset: 0,
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                opacity: 0.5, // Darken the image so text pops
               }}
             />
           )}
+
+          {/* Gradient shadow to make text readable */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)',
+            }}
+          />
 
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
               padding: '60px',
-              textAlign: 'center',
+              position: 'relative',
+              zIndex: 10,
+              color: 'white',
               width: '100%',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-end',
             }}
           >
+             {/* Tag Pill */}
+            <div
+              style={{
+                padding: '8px 20px',
+                backgroundColor: '#0f4c4c',
+                color: 'white',
+                fontSize: '28px',
+                fontWeight: 'bold',
+                borderRadius: '99px',
+                marginBottom: '20px',
+                alignSelf: 'flex-start',
+                textTransform: 'uppercase',
+              }}
+            >
+              समाचार
+            </div>
+
             <h1
               style={{
-                fontSize: 64,
+                fontSize: '64px',
                 fontWeight: 'bold',
-                color: '#ffffff',
+                fontFamily: 'sans-serif',
                 lineHeight: 1.2,
-                marginTop: 0,
-                marginBottom: 0,
-                textShadow: '0 2px 20px rgba(0,0,0,0.8)',
+                maxHeight: '160px',
+                overflow: 'hidden',
+                textShadow: '0 4px 6px rgba(0,0,0,0.6)',
+                margin: 0,
               }}
             >
               {title}
